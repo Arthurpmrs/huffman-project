@@ -1,111 +1,115 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-typedef struct Node Node;
-struct Node
+#include "utils.c"
+
+typedef struct node node_t;
+struct node
 {
     void *item;
-    int priority;
-    Node *next;
+    uint32_t priority;
+    struct node *next;
 };
 
-typedef struct PriorityQueueList
+typedef struct priority_queue
 {
-    Node *head;
-    Node *tail;
-    int size;
-} PriorityQueueList;
+    node_t *head;
+    node_t *tail;
+    size_t size;
+    void (*print)(void *);
+} priority_queue_t;
 
-PriorityQueueList *createPriorityQueueList()
+priority_queue_t *create_priority_queue(void (*print)(void *))
 {
-    PriorityQueueList *newPQueue = malloc(sizeof(PriorityQueueList));
-    newPQueue->head = NULL;
-    newPQueue->tail = NULL;
-    newPQueue->size = 0;
-    return newPQueue;
+    priority_queue_t *new_pq = malloc(sizeof(priority_queue_t));
+    new_pq->head = NULL;
+    new_pq->tail = NULL;
+    new_pq->size = 0;
+    new_pq->print = print;
+    return new_pq;
 }
 
-int isEmpty(PriorityQueueList *ql)
+int is_empty(priority_queue_t *pq)
 {
-    return ql->head == NULL;
+    return pq->head == NULL;
 }
 
-void enqueue(PriorityQueueList *pql, void *item, int priority)
+void enqueue(priority_queue_t *pq, void *item, uint32_t priority)
 {
-    Node *newNode = malloc(sizeof(Node));
-    newNode->item = item;
-    newNode->priority = priority;
+    node_t *new_node = malloc(sizeof(node_t));
+    new_node->item = item;
+    new_node->priority = priority;
 
-    if (isEmpty(pql))
+    if (is_empty(pq))
     {
-        newNode->next = NULL;
-        pql->head = newNode;
-        pql->tail = newNode;
+        new_node->next = NULL;
+        pq->head = new_node;
+        pq->tail = new_node;
     }
     else
     {
-        if (priority > pql->head->priority)
+        if (priority > pq->head->priority)
         {
-            newNode->next = pql->head;
-            pql->head = newNode;
+            new_node->next = pq->head;
+            pq->head = new_node;
         }
         else
         {
-            Node *current = pql->head;
+            node_t *current = pq->head;
             while (current->next != NULL &&
                    priority <= current->next->priority)
             {
                 current = current->next;
             }
-            newNode->next = current->next;
-            current->next = newNode;
+            new_node->next = current->next;
+            current->next = new_node;
         }
     }
-    pql->size += 1;
+    pq->size += 1;
 }
 
-void *dequeue(PriorityQueueList *pql)
+void *dequeue(priority_queue_t *pq)
 {
-    if (isEmpty(pql))
+    if (is_empty(pq))
     {
         printf("The queue is empty.\n");
         return NULL;
     }
 
-    Node *DHead = pql->head;
-    void *item = pql->head->item;
+    node_t *deletion_p = pq->head;
+    void *item = pq->head->item;
 
-    if (pql->head == pql->tail)
+    if (pq->head == pq->tail)
     {
-        pql->head = NULL;
-        pql->tail = NULL;
+        pq->head = NULL;
+        pq->tail = NULL;
     }
     else
     {
-        pql->head = pql->head->next;
+        pq->head = pq->head->next;
     }
 
-    free(DHead);
-    pql->size -= 1;
+    free(deletion_p);
+    pq->size -= 1;
 
     return item;
 }
 
-void printQueue(PriorityQueueList *ql, void (*printFun)(void *))
+void print_queue(priority_queue_t *pq)
 {
-    if (isEmpty(ql))
+    if (is_empty(pq))
     {
         printf("The queue is empty.\n");
         return;
     }
 
-    printf("HEAD ");
-    Node *current = ql->head;
+    node_t *current = pq->head;
     while (current != NULL)
     {
 
-        printFun(current->item);
-        printf("(%d)", current->priority);
+        pq->print(current->item);
+        printf("(p=%d)", current->priority);
         if (current->next != NULL)
         {
             printf("->");
@@ -113,35 +117,30 @@ void printQueue(PriorityQueueList *ql, void (*printFun)(void *))
 
         current = current->next;
     }
-    printf(" LAST\n");
+    printf("\n");
 }
 
-// Integer specific functions
-void printInt(void *item)
+int main(void)
 {
-    printf("%d", *(int *)item);
+    priority_queue_t *pq = create_priority_queue(print_int);
+
+    int values[10] = {45, 87, 96, 78, 12, 1, 0, 47, 3, 5};
+    int priorities[10] = {5, 98, 15, 98, 45, 12, 13, 77, 42, 7};
+    for (int i = 0; i < 10; i++)
+    {
+        enqueue(pq, (void *)&values[i], priorities[i]);
+    }
+
+    int newValue = 9999;
+    int newValue2 = 7777;
+    enqueue(pq, (void *)&newValue, 1);
+    enqueue(pq, (void *)&newValue2, 100);
+    print_queue(pq);
+    printf("size: %ld\n", pq->size);
+
+    dequeue(pq);
+    dequeue(pq);
+    print_queue(pq);
+    printf("size: %ld\n", pq->size);
+    return 0;
 }
-
-// int main(void)
-// {
-//     int arr[10] = {45, 87, 96, 78, 12, 1, 0, 47, 3, 5};
-//     PriorityQueueList *pql = createPriorityQueueList();
-//     int priorities[10] = {5, 98, 15, 98, 45, 12, 13, 77, 42, 7};
-//     for (int i = 0; i < 10; i++)
-//     {
-//         enqueue(pql, (void *)&arr[i], priorities[i]);
-//     }
-
-//     int newValue = 9999;
-//     int newValue2 = 7777;
-//     enqueue(pql, (void *)&newValue, 1);
-//     enqueue(pql, (void *)&newValue2, 100);
-//     printQueue(pql, printInt);
-//     printf("size: %d\n", pql->size);
-
-//     dequeue(pql);
-//     dequeue(pql);
-//     printQueue(pql, printInt);
-//     printf("size: %d\n", pql->size);
-//     return 0;
-// }

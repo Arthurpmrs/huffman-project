@@ -1,0 +1,9 @@
+# Exclude everything
+*
+# Include folders
+!*/
+# include files with any extension
+!*.*
+
+# folders
+.vscode
