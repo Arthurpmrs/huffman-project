@@ -27,7 +27,7 @@ uint32_t hp_get_right_index(heap_t *heap, uint32_t i);
 
 void *hp_item_of(heap_t *heap, uint32_t i);
 
-void hp_enqueue(heap_t *heap, void *item);
+void hp_enqueue(heap_t *heap, void *item, uint32_t *counter);
 
 void hp_max_heapify(heap_t *heap, uint32_t origin);
 

@@ -39,7 +39,7 @@ void *hp_item_of(heap_t *heap, uint32_t i)
     return heap->data[i];
 }
 
-void hp_enqueue(heap_t *heap, void *item)
+void hp_enqueue(heap_t *heap, void *item, uint32_t *counter)
 {
     if (heap == NULL)
     {
@@ -61,6 +61,7 @@ void hp_enqueue(heap_t *heap, void *item)
     while (parent_index >= 1 &&
            heap->compare(heap->data[new_item_index], heap->data[parent_index]) > 0)
     {
+        *counter += 1;
         swap(&heap->data[new_item_index], &heap->data[parent_index]);
         new_item_index = parent_index;
         parent_index = hp_get_parent_index(heap, new_item_index);

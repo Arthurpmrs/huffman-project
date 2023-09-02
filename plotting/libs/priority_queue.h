@@ -28,7 +28,8 @@ priority_queue_t *pq_create(void (*print)(void *));
 
 int pq_is_empty(priority_queue_t *pq);
 
-void pq_enqueue(priority_queue_t *pq, void *item, uint32_t priority);
+void pq_enqueue(priority_queue_t *pq, void *item,
+                uint32_t priority, uint32_t *counter);
 
 void *pq_dequeue(priority_queue_t *pq);
 

@@ -15,7 +15,8 @@ int pq_is_empty(priority_queue_t *pq)
     return pq->head == NULL;
 }
 
-void pq_enqueue(priority_queue_t *pq, void *item, uint32_t priority)
+void pq_enqueue(priority_queue_t *pq, void *item,
+                uint32_t priority, uint32_t *counter)
 {
     node_t *new_node = malloc(sizeof(node_t));
     new_node->item = item;
@@ -40,6 +41,7 @@ void pq_enqueue(priority_queue_t *pq, void *item, uint32_t priority)
             while (current->next != NULL &&
                    priority <= current->next->priority)
             {
+                *counter += 1;
                 current = current->next;
             }
             new_node->next = current->next;
