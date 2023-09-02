@@ -1,27 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include "heap.h"
 
-#include "utils.c"
-
-typedef struct heap
-{
-    size_t size;
-    size_t capacity;
-    void **data;
-    void (*print)(void *);
-    int (*compare)(void *, void *);
-} heap_t;
-
-void swap(void **a, void **b)
-{
-    void *tmp = *a;
-    *a = *b;
-    *b = tmp;
-}
-
-heap_t *create_heap(size_t capacity, void (*print)(void *),
-                    int (*compare)(void *, void *))
+heap_t *hp_create(size_t capacity, void (*print)(void *),
+                  int (*compare)(void *, void *))
 {
     void **data = malloc(capacity * sizeof(void *));
 
@@ -39,27 +19,27 @@ heap_t *create_heap(size_t capacity, void (*print)(void *),
     return new_heap;
 }
 
-uint32_t get_parent_index(heap_t *heap, uint32_t i)
+uint32_t hp_get_parent_index(heap_t *heap, uint32_t i)
 {
     return i >> 1;
 }
 
-uint32_t get_left_index(heap_t *heap, uint32_t i)
+uint32_t hp_get_left_index(heap_t *heap, uint32_t i)
 {
     return i << 1;
 }
 
-uint32_t get_right_index(heap_t *heap, uint32_t i)
+uint32_t hp_get_right_index(heap_t *heap, uint32_t i)
 {
     return (i << 1) + 1;
 }
 
-void *item_of(heap_t *heap, uint32_t i)
+void *hp_item_of(heap_t *heap, uint32_t i)
 {
     return heap->data[i];
 }
 
-void enqueue(heap_t *heap, void *item)
+void hp_enqueue(heap_t *heap, void *item)
 {
     if (heap == NULL)
     {
@@ -76,18 +56,18 @@ void enqueue(heap_t *heap, void *item)
     uint32_t new_item_index = heap->size;
     heap->data[new_item_index] = item;
 
-    uint32_t parent_index = get_parent_index(heap, heap->size);
+    uint32_t parent_index = hp_get_parent_index(heap, heap->size);
 
     while (parent_index >= 1 &&
            heap->compare(heap->data[new_item_index], heap->data[parent_index]) > 0)
     {
         swap(&heap->data[new_item_index], &heap->data[parent_index]);
         new_item_index = parent_index;
-        parent_index = get_parent_index(heap, new_item_index);
+        parent_index = hp_get_parent_index(heap, new_item_index);
     }
 }
 
-void max_heapify(heap_t *heap, uint32_t origin)
+void hp_max_heapify(heap_t *heap, uint32_t origin)
 {
     if (heap == NULL)
     {
@@ -95,8 +75,8 @@ void max_heapify(heap_t *heap, uint32_t origin)
     }
 
     uint32_t largest;
-    uint32_t left_index = get_left_index(heap, origin);
-    uint32_t right_index = get_right_index(heap, origin);
+    uint32_t left_index = hp_get_left_index(heap, origin);
+    uint32_t right_index = hp_get_right_index(heap, origin);
 
     if (left_index <= heap->size &&
         heap->compare(heap->data[left_index], heap->data[origin]) > 0)
@@ -117,11 +97,11 @@ void max_heapify(heap_t *heap, uint32_t origin)
     if (heap->compare(heap->data[origin], heap->data[largest]) != 0)
     {
         swap(&heap->data[origin], &heap->data[largest]);
-        max_heapify(heap, largest);
+        hp_max_heapify(heap, largest);
     }
 }
 
-void *dequeue(heap_t *heap)
+void *hp_dequeue(heap_t *heap)
 {
     if (heap == NULL)
     {
@@ -139,12 +119,12 @@ void *dequeue(heap_t *heap)
     heap->size -= 1;
 
     // from root
-    max_heapify(heap, 1);
+    hp_max_heapify(heap, 1);
 
     return item;
 }
 
-void print_heap(heap_t *heap)
+void hp_print(heap_t *heap)
 {
     for (int i = 1; i < heap->size + 1; i++)
     {
@@ -152,40 +132,4 @@ void print_heap(heap_t *heap)
         printf(" ");
     }
     printf("\n");
-}
-
-void enqueue_int(heap_t *heap, int item)
-{
-    int *mal_item = malloc(sizeof(int));
-    *mal_item = item;
-    enqueue(heap, (void *)mal_item);
-}
-
-int main(void)
-{
-    heap_t *heap = create_heap(15, print_int, compare_int);
-    enqueue_int(heap, 14);
-    enqueue_int(heap, 2);
-    enqueue_int(heap, 1);
-    enqueue_int(heap, 4);
-    enqueue_int(heap, 8);
-    enqueue_int(heap, 7);
-    enqueue_int(heap, 3);
-    enqueue_int(heap, 9);
-    enqueue_int(heap, 16);
-    enqueue_int(heap, 10);
-
-    print_heap(heap);
-    printf("size=%ld\n", heap->size);
-
-    int old_size = heap->size;
-    for (int i = 0; i < old_size; i++)
-    {
-        void *res = dequeue(heap);
-        if (res != NULL)
-        {
-            printf("%d\n", *(int *)res);
-        }
-    }
-    return 0;
 }

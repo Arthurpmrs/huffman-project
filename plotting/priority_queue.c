@@ -1,26 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include "priority_queue.h"
 
-#include "utils.c"
-
-typedef struct node node_t;
-struct node
-{
-    void *item;
-    uint32_t priority;
-    struct node *next;
-};
-
-typedef struct priority_queue
-{
-    node_t *head;
-    node_t *tail;
-    size_t size;
-    void (*print)(void *);
-} priority_queue_t;
-
-priority_queue_t *create_priority_queue(void (*print)(void *))
+priority_queue_t *pq_create(void (*print)(void *))
 {
     priority_queue_t *new_pq = malloc(sizeof(priority_queue_t));
     new_pq->head = NULL;
@@ -30,18 +10,18 @@ priority_queue_t *create_priority_queue(void (*print)(void *))
     return new_pq;
 }
 
-int is_empty(priority_queue_t *pq)
+int pq_is_empty(priority_queue_t *pq)
 {
     return pq->head == NULL;
 }
 
-void enqueue(priority_queue_t *pq, void *item, uint32_t priority)
+void pq_enqueue(priority_queue_t *pq, void *item, uint32_t priority)
 {
     node_t *new_node = malloc(sizeof(node_t));
     new_node->item = item;
     new_node->priority = priority;
 
-    if (is_empty(pq))
+    if (pq_is_empty(pq))
     {
         new_node->next = NULL;
         pq->head = new_node;
@@ -69,9 +49,9 @@ void enqueue(priority_queue_t *pq, void *item, uint32_t priority)
     pq->size += 1;
 }
 
-void *dequeue(priority_queue_t *pq)
+void *pq_dequeue(priority_queue_t *pq)
 {
-    if (is_empty(pq))
+    if (pq_is_empty(pq))
     {
         printf("The queue is empty.\n");
         return NULL;
@@ -96,9 +76,9 @@ void *dequeue(priority_queue_t *pq)
     return item;
 }
 
-void print_queue(priority_queue_t *pq)
+void pq_print(priority_queue_t *pq)
 {
-    if (is_empty(pq))
+    if (pq_is_empty(pq))
     {
         printf("The queue is empty.\n");
         return;
@@ -118,29 +98,4 @@ void print_queue(priority_queue_t *pq)
         current = current->next;
     }
     printf("\n");
-}
-
-int main(void)
-{
-    priority_queue_t *pq = create_priority_queue(print_int);
-
-    int values[10] = {45, 87, 96, 78, 12, 1, 0, 47, 3, 5};
-    int priorities[10] = {5, 98, 15, 98, 45, 12, 13, 77, 42, 7};
-    for (int i = 0; i < 10; i++)
-    {
-        enqueue(pq, (void *)&values[i], priorities[i]);
-    }
-
-    int newValue = 9999;
-    int newValue2 = 7777;
-    enqueue(pq, (void *)&newValue, 1);
-    enqueue(pq, (void *)&newValue2, 100);
-    print_queue(pq);
-    printf("size: %ld\n", pq->size);
-
-    dequeue(pq);
-    dequeue(pq);
-    print_queue(pq);
-    printf("size: %ld\n", pq->size);
-    return 0;
 }
