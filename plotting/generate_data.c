@@ -1,6 +1,6 @@
-#include "heap.h"
-#include "priority_queue.h"
-#include "utils.h"
+#include "libs/heap.h"
+#include "libs/priority_queue.h"
+#include "libs/utils.h"
 
 void hp_enqueue_int(heap_t *heap, int item)
 {
