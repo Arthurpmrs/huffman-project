@@ -35,4 +35,6 @@ void *hp_dequeue(heap_t *heap);
 
 void hp_print(heap_t *heap);
 
+void *hp_clear(heap_t *heap);
+
 #endif

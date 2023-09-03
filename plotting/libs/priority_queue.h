@@ -35,4 +35,6 @@ void *pq_dequeue(priority_queue_t *pq);
 
 void pq_print(priority_queue_t *pq);
 
+void *pq_clear(priority_queue_t *pq);
+
 #endif

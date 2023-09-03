@@ -134,3 +134,10 @@ void hp_print(heap_t *heap)
     }
     printf("\n");
 }
+
+void *hp_clear(heap_t *heap)
+{
+    free(heap->data);
+    free(heap);
+    return NULL;
+}

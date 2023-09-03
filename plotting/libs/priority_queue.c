@@ -101,3 +101,17 @@ void pq_print(priority_queue_t *pq)
     }
     printf("\n");
 }
+
+void *pq_clear(priority_queue_t *pq)
+{
+    node_t *deletion_p;
+    node_t *current = pq->head;
+    while (current != NULL)
+    {
+        deletion_p = current;
+        current = current->next;
+        free(deletion_p);
+    }
+    free(pq);
+    return NULL;
+}
