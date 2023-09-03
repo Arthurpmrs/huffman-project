@@ -7,3 +7,7 @@
 
 # folders
 .vscode
+__pycache__
+plots
+.python-version
+data
