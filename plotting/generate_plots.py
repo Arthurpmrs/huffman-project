@@ -80,7 +80,6 @@ def read_data() -> dict:
 
     return data
 
-
 def generate_main_plot(sizes, queue, heap, description):
     fig = plt.figure(dpi=100, figsize=(10, 8))
     fig.suptitle("Contagem e Plotagem: Heap vs Queue")
@@ -109,7 +108,7 @@ def generate_main_plot(sizes, queue, heap, description):
 
     fig.tight_layout()
     fig.savefig(folder_name / f"{description}_{round(time.time())}.jpg")
-
+    plt.show()
 
 def generate_scatter_plot(data):
     fig = plt.figure(dpi=100, figsize=(10, 4.5))
@@ -140,7 +139,7 @@ def generate_scatter_plot(data):
 
     fig.tight_layout()
     fig.savefig(folder_name / f"sct_{round(time.time())}.jpg")
-
+    plt.show()
 
 def generate_plots():
     data: dict = read_data()
@@ -149,7 +148,7 @@ def generate_plots():
 
     matploblib_config()
     generate_main_plot(data["sizes"], queue, heap, "bigO")
-    generate_scatter_plot(data)
+    # generate_scatter_plot(data)
 
 
 if __name__ == "__main__":
