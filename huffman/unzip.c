@@ -88,43 +88,16 @@ bool get_sizes_from_header(FILE *input, uint16_t *trash_size, uint16_t *tree_siz
     fread(header_bytes, sizeof(uint8_t), 2, input);
 
     // get trash size
-    *trash_size = 0;
-    for (uint8_t i = 0; i < 3; i++)
-    {
-        if (is_bit_set(header_bytes[0], i + 5))
-        {
-            *trash_size = set_bit(*trash_size, i);
-        }
-    }
+    *trash_size = header_bytes[0] >> 5;
 
     // get tree size
-    *tree_size = 0;
-    uint8_t header_byte_index = 1;
-    uint8_t header_bit_index = 0;
-    uint8_t tree_size_bit_index = 0;
-
-    while (tree_size_bit_index != 13)
-    {
-        if (is_bit_set(header_bytes[header_byte_index], header_bit_index))
-        {
-            *tree_size = set_bit(*tree_size, tree_size_bit_index);
-        }
-
-        if (header_bit_index == 7)
-        {
-            header_bit_index = 0;
-            header_byte_index -= 1;
-        }
-        else
-        {
-            header_bit_index += 1;
-        }
-
-        tree_size_bit_index += 1;
-    }
+    uint8_t mask = 0b00011111;
+    *tree_size = (header_bytes[0] & mask) << 8 | header_bytes[1];
 
     if (DEBUG)
     {
+        print_as_bin(header_bytes[0], 8);
+        print_as_bin(header_bytes[1], 8);
         printf("trash_size = %d - ", *trash_size);
         print_as_bin(*trash_size, 8);
         printf("tree_size = %d - ", *tree_size);
