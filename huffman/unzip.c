@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "libs/binary_tree.h"
+
 #define DEBUG 1
 
 uint16_t set_bit(uint16_t n, uint8_t i)
@@ -107,6 +109,62 @@ bool get_sizes_from_header(FILE *input, uint16_t *trash_size, uint16_t *tree_siz
     return true;
 }
 
+binary_tree_t *get_tree_from_preorder(uint16_t *i, uint16_t tree_size, uint8_t preorder_tree[tree_size])
+{
+    // printf("(i=%d) byte %d (next=%d)\n", *i, preorder_tree[*i], preorder_tree[*i + 1]);
+    uint8_t *item = malloc(sizeof(uint8_t));
+    if (preorder_tree[*i] == '*')
+    {
+        *item = '*';
+        *i += 1;
+        binary_tree_t *left = get_tree_from_preorder(i, tree_size, preorder_tree);
+        binary_tree_t *right = get_tree_from_preorder(i, tree_size, preorder_tree);
+        return create_binary_tree((void *)item, left, right);
+    }
+    else
+    {
+        if (preorder_tree[*i] == '\\')
+        {
+            *item = preorder_tree[*i + 1];
+            *i += 2;
+        }
+        else
+        {
+            *item = preorder_tree[*i];
+            *i += 1;
+        }
+        return create_binary_tree((void *)item, NULL, NULL);
+    }
+}
+
+// void compare(int *i, uint16_t tree_size, uint8_t preorder_tree[tree_size], binary_tree_t *ht)
+// {
+
+//     if (ht != NULL)
+//     {
+//         if (preorder_tree[*i] == '\\')
+//         {
+//             *i += 1;
+//         }
+//         if (*(unsigned char *)ht->item == preorder_tree[*i])
+//         {
+//             printf("%d x %d (i=%d)\n", *(unsigned char *)ht->item, preorder_tree[*i], *i);
+//         }
+//         else
+//         {
+//             printf(">>>>%d x %d (i=%d)\n", *(unsigned char *)ht->item, preorder_tree[*i], *i);
+//         }
+//         *i += 1;
+//         compare(i, tree_size, preorder_tree, ht->left);
+//         compare(i, tree_size, preorder_tree, ht->right);
+//     }
+// }
+
+void print_byte(void *item)
+{
+    printf("%c", *(uint8_t *)item);
+}
+
 int main(void)
 {
     char zipped_path[256];
@@ -134,14 +192,30 @@ int main(void)
     uint16_t tree_size;
     get_sizes_from_header(input, &trash_size, &tree_size);
 
+    uint8_t preorder_tree[tree_size];
+    fread(preorder_tree, sizeof(uint8_t), tree_size, input);
+
+    if (DEBUG)
+    {
+        printf("Preorder tree from header:\n");
+        for (int i = 0; i < tree_size; i++)
+        {
+            printf("%c", preorder_tree[i]);
+        }
+        printf("\n");
+    }
+
+    // uint16_t tree_size = 11;
+    // char preorder_tree[11] = "**CB***FEDA";
+    uint16_t aux_index = 0;
+    binary_tree_t *ht = get_tree_from_preorder(&aux_index, tree_size, preorder_tree);
+
+    if (DEBUG)
+    {
+        printf("Reconstructed preorder tree:\n");
+        print_pre_order(ht, print_byte);
+    }
+
     fclose(input);
-
-    // Construct output filename string
-
-    // read and process the first two bytes (get tree_size and trash_size)
-
-    // recreate tree from header (pre-order)
-
-    // unzip file
     return 0;
 }
