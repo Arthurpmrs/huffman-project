@@ -4,9 +4,14 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "libs/binary_tree.h"
 
 #define DEBUG 1
+#define MAX_FILENAME_SIZE 256
 
 uint16_t set_bit(uint16_t n, uint8_t i)
 {
@@ -47,13 +52,24 @@ bool print_as_bin(int n, size_t size)
     printf("\n");
 }
 
+uint64_t get_file_size_in_bytes(char filename[MAX_FILENAME_SIZE])
+{
+    struct stat sb;
+    if (stat(filename, &sb) == -1)
+    {
+        printf("It was not possible to get the size of the zipped file.\n");
+        exit(EXIT_FAILURE);
+    }
+    return (uint64_t)sb.st_size;
+}
+
 /**
  * @brief Get the unziped file path string
  *
  * @param unzipped
  * @param zipped
  */
-bool get_unzipped_path(char unzipped[256], char zipped[256])
+bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE], char zipped[MAX_FILENAME_SIZE])
 {
     char *dot = strrchr(zipped, '.');
     if (dot && strcmp(dot, ".huff") != 0)
@@ -167,7 +183,7 @@ void print_byte(void *item)
 
 int main(void)
 {
-    char zipped_path[256];
+    char zipped_path[MAX_FILENAME_SIZE];
     if (DEBUG)
     {
         strcpy(zipped_path, "examples/bocchi.jpg.huff");
@@ -178,7 +194,7 @@ int main(void)
         scanf("%s", zipped_path);
     }
 
-    char unzipped_path[256];
+    char unzipped_path[MAX_FILENAME_SIZE];
     get_unzipped_path(unzipped_path, zipped_path);
 
     FILE *input = fopen(zipped_path, "rb");
@@ -215,6 +231,15 @@ int main(void)
         printf("Reconstructed preorder tree:\n");
         print_pre_order(ht, print_byte);
     }
+
+    uint8_t byte;
+    int count = 0;
+    while (fread(&byte, sizeof(uint8_t), 1, input) != 0)
+    {
+        count++;
+    }
+    uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - 2 - tree_size;
+    printf("\ncount=%d - statsize=%lld\n", count, zipped_bytes_size);
 
     fclose(input);
     return 0;
