@@ -3,55 +3,20 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
+#include "libs/utils.c"
 #include "libs/binary_tree.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define MAX_FILENAME_SIZE 256
 
-uint16_t set_bit(uint16_t n, uint8_t i)
-{
-    uint16_t mask = 1 << i;
-    return mask | n;
-}
-
-bool is_bit_set(uint8_t n, uint8_t i)
-{
-    uint8_t mask = 1 << i;
-    return mask & n;
-}
-
-bool print_as_bin(int n, size_t size)
-{
-    uint8_t aux[size];
-    for (int i = size - 1; i >= 0; i--)
-    {
-        if (n == 0)
-        {
-            aux[i] = 0;
-        }
-        else
-        {
-            aux[i] = n % 2;
-            n = n / 2;
-        }
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        if (i % 8 == 0 && i != 0)
-        {
-            printf(" ");
-        }
-        printf("%d", aux[i]);
-    }
-    printf("\n");
-}
-
+/**
+ * @brief Get the file size in bytes using sys/stat.h
+ *
+ * @param filename Name of the file
+ * @return uint64_t Number of bytes (64 bits) in the file
+ */
 uint64_t get_file_size_in_bytes(char filename[MAX_FILENAME_SIZE])
 {
     struct stat sb;
@@ -64,10 +29,10 @@ uint64_t get_file_size_in_bytes(char filename[MAX_FILENAME_SIZE])
 }
 
 /**
- * @brief Get the unziped file path string
+ * @brief Get the unzipped file path string
  *
- * @param unzipped
- * @param zipped
+ * @param unzipped Buffer to the unzipped file path
+ * @param zipped Zipped file path
  */
 bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE], char zipped[MAX_FILENAME_SIZE])
 {
@@ -82,20 +47,19 @@ bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE], char zipped[MAX_FILENAM
     uint16_t path_size = strlen(zipped);
     unzipped[path_size - 5] = '\0';
 
-    if (DEBUG)
-    {
-        printf("%s\n", unzipped);
-    }
+    return true;
 }
 
 /**
- * @brief Get the sizes from header object
+ * @brief Get trash and tree sizes from the zipped file header.
  *
- * @param input
- * @param trash_size
- * @param tree_size
+ * @param input Pointer to the zipped file
+ * @param trash_size Buffer for the trash size
+ * @param tree_size Buffer for the tree size
+ * @return true If everything went ok
+ * @return false If there something wrong with the file pointer
  */
-bool get_sizes_from_header(FILE *input, uint16_t *trash_size, uint16_t *tree_size)
+bool get_sizes_from_header(FILE *input, uint8_t *trash_size, uint16_t *tree_size)
 {
     if (input == NULL)
     {
@@ -112,29 +76,28 @@ bool get_sizes_from_header(FILE *input, uint16_t *trash_size, uint16_t *tree_siz
     uint8_t mask = 0b00011111;
     *tree_size = (header_bytes[0] & mask) << 8 | header_bytes[1];
 
-    if (DEBUG)
-    {
-        print_as_bin(header_bytes[0], 8);
-        print_as_bin(header_bytes[1], 8);
-        printf("trash_size = %d - ", *trash_size);
-        print_as_bin(*trash_size, 8);
-        printf("tree_size = %d - ", *tree_size);
-        print_as_bin(*tree_size, 16);
-    }
-
     return true;
 }
 
-binary_tree_t *get_tree_from_preorder(uint16_t *i, uint16_t tree_size, uint8_t preorder_tree[tree_size])
+/**
+ * @brief Reconstructs the Huffman tree from preorder string
+ *
+ * @param i Auxiliar index (used to go through the preorder string - must be 0)
+ * @param tree_size Size of the Huffman binary tree
+ * @param preorder_tree String holding the Huffman tree in preorder
+ * @return binary_tree_t* Reconstructed Huffman tree
+ */
+binary_tree_t *reconstruct_tree(uint16_t *i, uint16_t tree_size,
+                                uint8_t preorder_tree[tree_size])
 {
-    // printf("(i=%d) byte %d (next=%d)\n", *i, preorder_tree[*i], preorder_tree[*i + 1]);
     uint8_t *item = malloc(sizeof(uint8_t));
+
     if (preorder_tree[*i] == '*')
     {
         *item = '*';
         *i += 1;
-        binary_tree_t *left = get_tree_from_preorder(i, tree_size, preorder_tree);
-        binary_tree_t *right = get_tree_from_preorder(i, tree_size, preorder_tree);
+        binary_tree_t *left = reconstruct_tree(i, tree_size, preorder_tree);
+        binary_tree_t *right = reconstruct_tree(i, tree_size, preorder_tree);
         return create_binary_tree((void *)item, left, right);
     }
     else
@@ -149,34 +112,61 @@ binary_tree_t *get_tree_from_preorder(uint16_t *i, uint16_t tree_size, uint8_t p
             *item = preorder_tree[*i];
             *i += 1;
         }
+
         return create_binary_tree((void *)item, NULL, NULL);
     }
 }
 
-binary_tree_t *unzip_byte(FILE *output, uint8_t compressed_byte, binary_tree_t *tree,
+/**
+ * @brief Unzips the next byte from input into output.
+ *
+ * @param input File pointer to the zipped file
+ * @param output File pointer to the unzipped file
+ * @param subtree Pointer to the current location of the huffman binary tree
+ * @param root Pointer to the root of the huffman binary tree
+ * @param end_bit_index Index of the last bit to be read
+ * @return binary_tree_t* Pointer to the updated current location of the
+ * huffman tree
+ */
+binary_tree_t *unzip_next(FILE *input, FILE *output, binary_tree_t *subtree,
                           binary_tree_t *root, uint8_t end_bit_index)
 {
+    uint8_t compressed_byte = 0;
+    fread(&compressed_byte, sizeof(uint8_t), 1, input);
+
     for (int8_t bit = 7; bit >= end_bit_index; bit--)
     {
         if (is_bit_set(compressed_byte, bit))
         {
-            tree = tree->right;
+            subtree = subtree->right;
         }
         else
         {
-            tree = tree->left;
+            subtree = subtree->left;
         }
 
-        if (tree->left == NULL && tree->right == NULL)
+        if (subtree->left == NULL && subtree->right == NULL)
         {
-            fwrite((uint8_t *)tree->item, sizeof(uint8_t), 1, output);
-            tree = root;
+            fwrite((uint8_t *)subtree->item, sizeof(uint8_t), 1, output);
+            subtree = root;
         }
     }
-    return tree;
+
+    return subtree;
 }
 
-bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint16_t trash_size,
+/**
+ * @brief Unzips the compressed content of the zipped file into the unzipped file.
+ *
+ * @param input Pointer to the zipped file
+ * @param ht Pointer to the root of the huffman binary tree
+ * @param n_bytes Total size of bytes to be unzipped
+ * @param trash_size Size of the trash in the last Byte
+ * @param unzipped_path Path to the unzipped file
+ * @return true if everything went ok
+ * @return false if input or tree are NULL or the output file could not be accessed.
+ */
+bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint8_t trash_size,
            char unzipped_path[MAX_FILENAME_SIZE])
 {
     if (input == NULL || ht == NULL)
@@ -186,96 +176,16 @@ bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint16_t trash_size
 
     FILE *output = fopen(unzipped_path, "wb");
 
-    uint8_t compressed_byte = 0;
     binary_tree_t *current = ht;
 
     for (uint64_t byte = 0; byte < n_bytes - 1; byte++)
     {
-        fread(&compressed_byte, sizeof(uint8_t), 1, input);
-        current = unzip_byte(output, compressed_byte, current, ht, 0);
-        // printf("comp=%d ", compressed_byte);
-        // print_as_bin(compressed_byte, 8);
-        // int8_t bit = 7;
-        // while (current->left != NULL || current->right != NULL)
-        // {
-        //     if (is_bit_set(compressed_byte, bit))
-        //     {
-        //         current = current->right;
-        //     }
-        //     else
-        //     {
-        //         current = current->left;
-        //     }
-        // }
-
-        // for (int8_t bit = 7; bit >= 0; bit--)
-        // {
-        //     if (is_bit_set(compressed_byte, bit))
-        //     {
-        //         current = current->right;
-        //     }
-        //     else
-        //     {
-        //         current = current->left;
-        //     }
-
-        //     if (current->left == NULL && current->right == NULL)
-        //     {
-        //         fwrite((uint8_t *)current->item, sizeof(uint8_t), 1, output);
-        //         current = ht;
-        //     }
-        // }
+        current = unzip_next(input, output, current, ht, 0);
     }
-    fread(&compressed_byte, sizeof(uint8_t), 1, input);
-    unzip_byte(output, compressed_byte, current, ht, trash_size);
-    // print_as_bin(compressed_byte, 8);
-    // for (int8_t bit = 7; bit <= trash_size; bit--)
-    // {
-    //     if (is_bit_set(compressed_byte, bit))
-    //     {
-    //         current = current->right;
-    //     }
-    //     else
-    //     {
-    //         current = current->left;
-    //     }
 
-    //     if (current->left == NULL && current->right == NULL)
-    //     {
-    //         fwrite((uint8_t *)current->item, sizeof(uint8_t), 1, output);
-    //         current = ht;
-    //     }
-    // }
-
+    unzip_next(input, output, current, ht, trash_size);
     fclose(output);
-}
-
-// void compare(int *i, uint16_t tree_size, uint8_t preorder_tree[tree_size], binary_tree_t *ht)
-// {
-
-//     if (ht != NULL)
-//     {
-//         if (preorder_tree[*i] == '\\')
-//         {
-//             *i += 1;
-//         }
-//         if (*(unsigned char *)ht->item == preorder_tree[*i])
-//         {
-//             printf("%d x %d (i=%d)\n", *(unsigned char *)ht->item, preorder_tree[*i], *i);
-//         }
-//         else
-//         {
-//             printf(">>>>%d x %d (i=%d)\n", *(unsigned char *)ht->item, preorder_tree[*i], *i);
-//         }
-//         *i += 1;
-//         compare(i, tree_size, preorder_tree, ht->left);
-//         compare(i, tree_size, preorder_tree, ht->right);
-//     }
-// }
-
-void print_byte(void *item)
-{
-    printf("%c", *(uint8_t *)item);
+    return true;
 }
 
 int main(void)
@@ -291,9 +201,6 @@ int main(void)
         scanf("%s", zipped_path);
     }
 
-    char unzipped_path[MAX_FILENAME_SIZE];
-    get_unzipped_path(unzipped_path, zipped_path);
-
     FILE *input = fopen(zipped_path, "rb");
     if (!input)
     {
@@ -301,16 +208,28 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-    uint16_t trash_size;
+    uint8_t trash_size;
     uint16_t tree_size;
-    get_sizes_from_header(input, &trash_size, &tree_size);
+    if (!get_sizes_from_header(input, &trash_size, &tree_size))
+    {
+        printf("Tree and trash sizes could not be read.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (DEBUG)
+    {
+        printf("trash_size = %d - ", trash_size);
+        print_as_bin(trash_size, 8);
+        printf("tree_size = %d - ", tree_size);
+        print_as_bin(tree_size, 16);
+    }
 
     uint8_t preorder_tree[tree_size];
     fread(preorder_tree, sizeof(uint8_t), tree_size, input);
 
     if (DEBUG)
     {
-        printf("Preorder tree from header:\n");
+        printf("\nPreorder tree from header:\n");
         for (int i = 0; i < tree_size; i++)
         {
             printf("%c", preorder_tree[i]);
@@ -318,28 +237,43 @@ int main(void)
         printf("\n");
     }
 
-    // uint16_t tree_size = 11;
-    // char preorder_tree[11] = "**CB***FEDA";
     uint16_t aux_index = 0;
-    binary_tree_t *ht = get_tree_from_preorder(&aux_index, tree_size, preorder_tree);
+    binary_tree_t *ht = reconstruct_tree(&aux_index, tree_size, preorder_tree);
 
     if (DEBUG)
     {
-        printf("Reconstructed preorder tree:\n");
+        printf("\nReconstructed preorder tree:\n");
         print_pre_order(ht, print_byte);
     }
 
-    // uint8_t byte;
-    // int count = 0;
-    // while (fread(&byte, sizeof(uint8_t), 1, input) != 0)
-    // {
-    //     count++;
-    // }
     uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - 2 - tree_size;
-    printf("\ncount=xxx - statsize=%lld\n", zipped_bytes_size);
 
-    unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path);
+    if (DEBUG)
+    {
+        printf("\nBytes to unzip = %lld\n", zipped_bytes_size);
+    }
 
+    char unzipped_path[MAX_FILENAME_SIZE];
+    if (!get_unzipped_path(unzipped_path, zipped_path))
+    {
+        printf("Output filename could not be generated.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (DEBUG)
+    {
+        printf("Destination file = %s\n", unzipped_path);
+    }
+
+    if (!unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path))
+    {
+        printf("Something went wront at the decompressing stage.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("[SUCCESS] File %s unzipped to %s\n", zipped_path, unzipped_path);
     fclose(input);
+
+    // tear down structures
     return 0;
 }
