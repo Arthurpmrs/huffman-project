@@ -19,9 +19,9 @@ uint16_t set_bit(uint16_t n, uint8_t i)
     return mask | n;
 }
 
-bool is_bit_set(uint16_t n, uint8_t i)
+bool is_bit_set(uint8_t n, uint8_t i)
 {
-    uint16_t mask = 1 << i;
+    uint8_t mask = 1 << i;
     return mask & n;
 }
 
@@ -153,6 +153,103 @@ binary_tree_t *get_tree_from_preorder(uint16_t *i, uint16_t tree_size, uint8_t p
     }
 }
 
+binary_tree_t *unzip_byte(FILE *output, uint8_t compressed_byte, binary_tree_t *tree,
+                          binary_tree_t *root, uint8_t end_bit_index)
+{
+    for (int8_t bit = 7; bit >= end_bit_index; bit--)
+    {
+        if (is_bit_set(compressed_byte, bit))
+        {
+            tree = tree->right;
+        }
+        else
+        {
+            tree = tree->left;
+        }
+
+        if (tree->left == NULL && tree->right == NULL)
+        {
+            fwrite((uint8_t *)tree->item, sizeof(uint8_t), 1, output);
+            tree = root;
+        }
+    }
+    return tree;
+}
+
+bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint16_t trash_size,
+           char unzipped_path[MAX_FILENAME_SIZE])
+{
+    if (input == NULL || ht == NULL)
+    {
+        return false;
+    }
+
+    FILE *output = fopen(unzipped_path, "wb");
+
+    uint8_t compressed_byte = 0;
+    binary_tree_t *current = ht;
+
+    for (uint64_t byte = 0; byte < n_bytes - 1; byte++)
+    {
+        fread(&compressed_byte, sizeof(uint8_t), 1, input);
+        current = unzip_byte(output, compressed_byte, current, ht, 0);
+        // printf("comp=%d ", compressed_byte);
+        // print_as_bin(compressed_byte, 8);
+        // int8_t bit = 7;
+        // while (current->left != NULL || current->right != NULL)
+        // {
+        //     if (is_bit_set(compressed_byte, bit))
+        //     {
+        //         current = current->right;
+        //     }
+        //     else
+        //     {
+        //         current = current->left;
+        //     }
+        // }
+
+        // for (int8_t bit = 7; bit >= 0; bit--)
+        // {
+        //     if (is_bit_set(compressed_byte, bit))
+        //     {
+        //         current = current->right;
+        //     }
+        //     else
+        //     {
+        //         current = current->left;
+        //     }
+
+        //     if (current->left == NULL && current->right == NULL)
+        //     {
+        //         fwrite((uint8_t *)current->item, sizeof(uint8_t), 1, output);
+        //         current = ht;
+        //     }
+        // }
+    }
+    fread(&compressed_byte, sizeof(uint8_t), 1, input);
+    unzip_byte(output, compressed_byte, current, ht, trash_size);
+    // print_as_bin(compressed_byte, 8);
+    // for (int8_t bit = 7; bit <= trash_size; bit--)
+    // {
+    //     if (is_bit_set(compressed_byte, bit))
+    //     {
+    //         current = current->right;
+    //     }
+    //     else
+    //     {
+    //         current = current->left;
+    //     }
+
+    //     if (current->left == NULL && current->right == NULL)
+    //     {
+    //         fwrite((uint8_t *)current->item, sizeof(uint8_t), 1, output);
+    //         current = ht;
+    //     }
+    // }
+
+    fclose(output);
+}
+
 // void compare(int *i, uint16_t tree_size, uint8_t preorder_tree[tree_size], binary_tree_t *ht)
 // {
 
@@ -232,14 +329,16 @@ int main(void)
         print_pre_order(ht, print_byte);
     }
 
-    uint8_t byte;
-    int count = 0;
-    while (fread(&byte, sizeof(uint8_t), 1, input) != 0)
-    {
-        count++;
-    }
+    // uint8_t byte;
+    // int count = 0;
+    // while (fread(&byte, sizeof(uint8_t), 1, input) != 0)
+    // {
+    //     count++;
+    // }
     uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - 2 - tree_size;
-    printf("\ncount=%d - statsize=%lld\n", count, zipped_bytes_size);
+    printf("\ncount=xxx - statsize=%lld\n", zipped_bytes_size);
+
+    unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path);
 
     fclose(input);
     return 0;
