@@ -59,10 +59,11 @@ struct priority_queue *criar_filaprioridade()
     nova->head=NULL;
     return nova;
 }
-void pegando_frequencias(char array[])
+void pegando_frequencias(char array[], char nome[])
 {
     unsigned char caracter;
-    FILE *file=fopen("teste.txt", "rb");
+    strcat(nome, ".txt");
+    FILE *file=fopen(nome, "rb");
     while(fread(&caracter, sizeof(char), 1,file)>0)
     {array[caracter]=array[caracter]+1;
     printf("caracter:%c %d\n",caracter, caracter);}
@@ -79,7 +80,10 @@ int main()
 {
     char todosbytes[MAX_BYTES];
     iniciando_array(todosbytes);//checado
-    pegando_frequencias(todosbytes);//checado
+    char nome_arquivo[1200];
+    printf("Inserir nome do arquivo: ");
+    scanf("%s", nome_arquivo);
+    pegando_frequencias(todosbytes, nome_arquivo);//checado
     struct priority_queue *filabytes=criar_filaprioridade();
     filabytes=filtrar_array_filaprioridade(todosbytes,filabytes);
     printar_fila(filabytes);
