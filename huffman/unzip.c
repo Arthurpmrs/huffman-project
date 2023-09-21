@@ -43,9 +43,26 @@ bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE], char zipped[MAX_FILENAM
         return false;
     }
 
-    strcpy(unzipped, zipped);
-    uint16_t path_size = strlen(zipped);
-    unzipped[path_size - 5] = '\0';
+    char buffer[MAX_FILENAME_SIZE];
+    char *filename = strrchr(zipped, '/');
+
+    if (filename == NULL)
+    {
+        strcpy(buffer, "unzip_");
+        strcpy(buffer + strlen(buffer), zipped);
+    }
+    else
+    {
+        filename = filename + 1;
+        strcpy(buffer, zipped);
+        buffer[strlen(buffer) - strlen(filename)] = '\0';
+        strcpy(buffer + strlen(buffer), "unzip_\0");
+        strcpy(buffer + strlen(buffer), filename);
+    }
+    buffer[strlen(buffer) - 5] = '\0';
+    printf("%s\n", buffer);
+
+    strcpy(unzipped, buffer);
 
     return true;
 }
