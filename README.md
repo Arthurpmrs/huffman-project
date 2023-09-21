@@ -18,12 +18,27 @@ O projeto consiste nos seguintes tópicos:
 
 ## Huffman
 
-Para executar o algoritmo de descompressão execute o comando abaixo.
+### Descompressão
+
+O algoritmo de descompressão está presente no arquivo `unzip.c`. Para compilar e executar o código utilize os comandos abaixos.
 
 ```bash
 cd huffman
-gcc unzip.c libs/binary_tree.c -o unzip
+make unzip
 ./unzip
+```
+
+> [!IMPORTANT]
+> É requerido que os arquivos a serem descomprimidos possuam formato: `filename.ext.huff`, para que o arquivo de saída seja gerado corretamente.
+
+### Testes
+
+Para executar a suite de testes utilize os comandos abaixo.
+
+```bash
+cd huffman
+make tests
+tests/tests
 ```
 
 ## Djikstra
@@ -32,7 +47,7 @@ gcc unzip.c libs/binary_tree.c -o unzip
 
 As estruturas comparadas na etapa de contagem e plotagem foram uma **fila de prioridade (com base em lista encadeada)** e uma **fila de prioridade com Heap**.
 
-Nesse processo, buscou-se verificar que a fila de prioridade possuía insersão em $O(n)$ e que a Heap possuia inserção em $O(log \: n)$, sendo $n$ o tamanho da estrutura.
+Nesse processo, buscou-se verificar que a fila de prioridade possuía insersão em $O(n)$ e que a Heap possuia inserção em $O(log \; n)$, sendo $n$ o tamanho da estrutura.
 
 O processo foi realizado da seguinte maneira:
 
