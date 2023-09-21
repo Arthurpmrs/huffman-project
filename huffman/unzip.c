@@ -60,7 +60,6 @@ bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE], char zipped[MAX_FILENAM
         strcpy(buffer + strlen(buffer), filename);
     }
     buffer[strlen(buffer) - 5] = '\0';
-    printf("%s\n", buffer);
 
     strcpy(unzipped, buffer);
 
