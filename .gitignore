@@ -5,6 +5,10 @@
 # include files with any extension
 !*.*
 
+# files
+!makefile
+*.o
+
 # folders
 .vscode
 __pycache__
