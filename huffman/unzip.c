@@ -80,44 +80,6 @@ bool get_sizes_from_header(FILE *input, uint8_t *trash_size, uint16_t *tree_size
 }
 
 /**
- * @brief Reconstructs the Huffman tree from preorder string
- *
- * @param i Auxiliar index (used to go through the preorder string - must be 0)
- * @param tree_size Size of the Huffman binary tree
- * @param preorder_tree String holding the Huffman tree in preorder
- * @return binary_tree_t* Reconstructed Huffman tree
- */
-binary_tree_t *reconstruct_tree(uint16_t *i, uint16_t tree_size,
-                                uint8_t preorder_tree[tree_size])
-{
-    uint8_t *item = malloc(sizeof(uint8_t));
-
-    if (preorder_tree[*i] == '*')
-    {
-        *item = '*';
-        *i += 1;
-        binary_tree_t *left = reconstruct_tree(i, tree_size, preorder_tree);
-        binary_tree_t *right = reconstruct_tree(i, tree_size, preorder_tree);
-        return create_binary_tree((void *)item, left, right);
-    }
-    else
-    {
-        if (preorder_tree[*i] == '\\')
-        {
-            *item = preorder_tree[*i + 1];
-            *i += 2;
-        }
-        else
-        {
-            *item = preorder_tree[*i];
-            *i += 1;
-        }
-
-        return create_binary_tree((void *)item, NULL, NULL);
-    }
-}
-
-/**
  * @brief Unzips the next byte from input into output.
  *
  * @param input File pointer to the zipped file
@@ -237,8 +199,7 @@ int main(void)
         printf("\n");
     }
 
-    uint16_t aux_index = 0;
-    binary_tree_t *ht = reconstruct_tree(&aux_index, tree_size, preorder_tree);
+    binary_tree_t *ht = reconstruct_tree(preorder_tree);
 
     if (DEBUG)
     {
@@ -250,7 +211,7 @@ int main(void)
 
     if (DEBUG)
     {
-        printf("\nBytes to unzip = %lld\n", zipped_bytes_size);
+        printf("\nBytes to unzip = %ld\n", zipped_bytes_size);
     }
 
     char unzipped_path[MAX_FILENAME_SIZE];

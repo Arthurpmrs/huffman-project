@@ -15,7 +15,7 @@ bool is_bit_set(uint8_t n, uint8_t i)
     return mask & n;
 }
 
-bool print_as_bin(int n, size_t size)
+void print_as_bin(int n, size_t size)
 {
     uint8_t aux[size];
     for (int i = size - 1; i >= 0; i--)
