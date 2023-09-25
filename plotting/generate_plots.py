@@ -10,7 +10,7 @@ def matploblib_config():
     plt.style.use("ggplot")
 
     matplotlib.rcParams["mathtext.fontset"] = "cm"
-    matplotlib.rcParams["font.family"] = "CMU Serif"
+    # matplotlib.rcParams["font.family"] = "CMU Serif"
 
     axes = {
         "labelsize": 16,

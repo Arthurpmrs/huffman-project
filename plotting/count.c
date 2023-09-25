@@ -50,7 +50,6 @@ void counting(FILE *input, FILE *output, uint32_t size, uint32_t max_sample_size
     uint32_t hp_counter;
     uint32_t pq_counter;
 
-    printf("############# Size=%d #############\n", size, min, max);
     for (int i = 0; i < n_enqueue_samples; i++)
     {
         hp_counter = 0;
@@ -61,9 +60,9 @@ void counting(FILE *input, FILE *output, uint32_t size, uint32_t max_sample_size
         pq_enqueue_int(pq, random_sample, &pq_counter);
         hp_enqueue_int(hp, random_sample, &hp_counter);
 
-        printf("Número: %d\n", random_sample);
-        printf("    Priority Queue: %d comparações\n", pq_counter);
-        printf("    Heap: %d comparações\n", hp_counter);
+        printf("(n=%d) %dª Drawn number: %d\n", size, i, random_sample);
+        printf("    Priority Queue: %d comparisons\n", pq_counter);
+        printf("    Heap: %d comparisons\n", hp_counter);
         fprintf(output, "%d,%d,%d,%d\n", size, random_sample, hp_counter, pq_counter);
     }
 
