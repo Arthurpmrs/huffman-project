@@ -31,7 +31,7 @@ binary_tree_t *_reconstruct_tree(uint16_t *i, uint8_t preorder_tree[])
     }
     else
     {
-        if (preorder_tree[*i] == '\\')
+        if (preorder_tree[*i] == '\\') // é uma barra solo
         {
             *item = preorder_tree[*i + 1];
             *i += 2;

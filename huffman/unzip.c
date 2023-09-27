@@ -20,11 +20,7 @@
 uint64_t get_file_size_in_bytes(char filename[MAX_FILENAME_SIZE])
 {
     struct stat sb;
-    if (stat(filename, &sb) == -1)
-    {
-        printf("It was not possible to get the size of the zipped file.\n");
-        exit(EXIT_FAILURE);
-    }
+    stat(filename, &sb);
     return (uint64_t)sb.st_size;
 }
 
@@ -138,13 +134,13 @@ binary_tree_t *unzip_next(FILE *input, FILE *output, binary_tree_t *subtree,
  *
  * @param input Pointer to the zipped file
  * @param ht Pointer to the root of the huffman binary tree
- * @param n_bytes Total size of bytes to be unzipped
+ * @param zipped_bytes_size Total size of bytes to be unzipped
  * @param trash_size Size of the trash in the last Byte
  * @param unzipped_path Path to the unzipped file
  * @return true if everything went ok
  * @return false if input or tree are NULL or the output file could not be accessed.
  */
-bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint8_t trash_size,
+bool unzip(FILE *input, binary_tree_t *ht, uint64_t zipped_bytes_size, uint8_t trash_size,
            char unzipped_path[MAX_FILENAME_SIZE])
 {
     if (input == NULL || ht == NULL)
@@ -156,7 +152,7 @@ bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint8_t trash_size,
 
     binary_tree_t *current = ht;
 
-    for (uint64_t byte = 0; byte < n_bytes - 1; byte++)
+    for (uint64_t byte = 0; byte < zipped_bytes_size - 1; byte++)
     {
         current = unzip_next(input, output, current, ht, 0);
     }
@@ -169,84 +165,30 @@ bool unzip(FILE *input, binary_tree_t *ht, uint64_t n_bytes, uint8_t trash_size,
 int main(void)
 {
     char zipped_path[MAX_FILENAME_SIZE];
-    if (DEBUG)
-    {
-        strcpy(zipped_path, "examples/bocchi.jpg.huff");
-    }
-    else
-    {
-        printf("Enter the name of the file to be compressed (relative to cwd): ");
-        scanf("%s", zipped_path);
-    }
-
+    printf("Enter the name of the file to be compressed (relative to cwd): ");
+    scanf("%s", zipped_path);
+    
     FILE *input = fopen(zipped_path, "rb");
-    if (!input)
-    {
-        printf("File \"%s\" could not be found or accessed.\n", zipped_path);
-        exit(EXIT_FAILURE);
-    }
 
     uint8_t trash_size;
     uint16_t tree_size;
-    if (!get_sizes_from_header(input, &trash_size, &tree_size))
-    {
-        printf("Tree and trash sizes could not be read.\n");
-        exit(EXIT_FAILURE);
-    }
+    // read first two bytes
+    get_sizes_from_header(input, &trash_size, &tree_size);
 
-    if (DEBUG)
-    {
-        printf("trash_size = %d - ", trash_size);
-        print_as_bin(trash_size, 8);
-        printf("tree_size = %d - ", tree_size);
-        print_as_bin(tree_size, 16);
-    }
-
+    // remaining tree bytes
     uint8_t preorder_tree[tree_size];
     fread(preorder_tree, sizeof(uint8_t), tree_size, input);
 
-    if (DEBUG)
-    {
-        printf("\nPreorder tree from header:\n");
-        for (int i = 0; i < tree_size; i++)
-        {
-            printf("%c", preorder_tree[i]);
-        }
-        printf("\n");
-    }
-
+    // rest of tree
     binary_tree_t *ht = reconstruct_tree(preorder_tree);
-
-    if (DEBUG)
-    {
-        printf("\nReconstructed preorder tree:\n");
-        print_pre_order(ht, print_byte);
-    }
-
-    uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - 2 - tree_size;
-
-    if (DEBUG)
-    {
-        printf("\nBytes to unzip = %ld\n", zipped_bytes_size);
-    }
+    
+    // 2 is first two bytes of the header
+    uint16_t header_size = 2 + tree_size;
+    uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - header_size;
 
     char unzipped_path[MAX_FILENAME_SIZE];
-    if (!get_unzipped_path(unzipped_path, zipped_path))
-    {
-        printf("Output filename could not be generated.\n");
-        exit(EXIT_FAILURE);
-    }
 
-    if (DEBUG)
-    {
-        printf("Destination file = %s\n", unzipped_path);
-    }
-
-    if (!unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path))
-    {
-        printf("Something went wront at the decompressing stage.\n");
-        exit(EXIT_FAILURE);
-    }
+    unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path);
 
     printf("[SUCCESS] File %s unzipped to %s\n", zipped_path, unzipped_path);
     fclose(input);
