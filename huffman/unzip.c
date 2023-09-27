@@ -167,11 +167,12 @@ int main(void)
     char zipped_path[MAX_FILENAME_SIZE];
     printf("Enter the name of the file to be compressed (relative to cwd): ");
     scanf("%s", zipped_path);
-    
+
     FILE *input = fopen(zipped_path, "rb");
 
     uint8_t trash_size;
     uint16_t tree_size;
+
     // read first two bytes
     get_sizes_from_header(input, &trash_size, &tree_size);
 
@@ -181,18 +182,18 @@ int main(void)
 
     // rest of tree
     binary_tree_t *ht = reconstruct_tree(preorder_tree);
-    
+
     // 2 is first two bytes of the header
     uint16_t header_size = 2 + tree_size;
     uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - header_size;
 
     char unzipped_path[MAX_FILENAME_SIZE];
+    get_unzipped_path(unzipped_path, zipped_path);
 
     unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path);
 
     printf("[SUCCESS] File %s unzipped to %s\n", zipped_path, unzipped_path);
     fclose(input);
 
-    // tear down structures
     return 0;
 }
