@@ -197,8 +197,7 @@ int main()
     printf("Inserir nome do arquivo: ");
     scanf("%s", nome_arquivo);
     pegando_frequencias(todosbytes, nome_arquivo);
-    struct node *filabytes=NULL;
-    filabytes=filtrar_array_filaprioridade(todosbytes,filabytes);
+    struct node *filabytes=filtrar_array_filaprioridade(todosbytes,filabytes);
     struct node *arvorebytes=fila_em_arvore(filabytes);
     int altura=altura_arvore(arvorebytes);
     int novobyte[altura];
