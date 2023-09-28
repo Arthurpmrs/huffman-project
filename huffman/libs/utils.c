@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include "utils.h"
 
 uint8_t set_bit(uint8_t n, uint8_t i)
 {
@@ -15,6 +12,7 @@ bool is_bit_set(uint8_t n, uint8_t i)
     return mask & n;
 }
 
+// TODO: REMOVE
 void print_as_bin(int n, size_t size)
 {
     uint8_t aux[size];

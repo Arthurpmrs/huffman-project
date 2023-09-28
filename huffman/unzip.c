@@ -165,7 +165,7 @@ bool unzip(FILE *input, binary_tree_t *ht, uint64_t zipped_bytes_size, uint8_t t
 int main(void)
 {
     char zipped_path[MAX_FILENAME_SIZE];
-    printf("Enter the name of the file to be compressed (relative to cwd): ");
+    printf("Enter the name of the file to be unziped (relative to cwd): ");
     scanf("%s", zipped_path);
 
     FILE *input = fopen(zipped_path, "rb");
