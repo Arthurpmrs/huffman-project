@@ -215,7 +215,8 @@ int zip_arquivo_temporario(char nome[], struct info_bytes BYTES[], int altura)
         while(novo_byte!=NULL)
         {
             if(contador_byte_temporario==-1)
-            {   byte_temporario=0;
+            {   fwrite(&byte_temporario, 1, sizeof(char), file_temporario);
+                byte_temporario=0;
                 contador_byte_temporario=7;}
             if(novo_byte->new_bit==1)
             {byte_temporario=set_bit(byte_temporario, contador_byte_temporario);}
