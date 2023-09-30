@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#define MAX_FILE_SIZE 1200
+#define MAX_FILE_SIZE 1024
 #define MAX_BYTES 256
 struct node_list
 {   int new_bit;
@@ -12,6 +12,7 @@ struct info_bytes
 {
     unsigned char original_byte;
     int frequency;
+    int quantidade_nodes;
     struct node_list *ziped_byte;
 };
 struct node
@@ -70,8 +71,8 @@ void iniciando_array(struct info_bytes array[])
 }
 void pegando_frequencias(struct info_bytes array[], char nome[])
 {
-    unsigned char caracter;
     FILE *file=fopen(nome, "rb");
+    unsigned char caracter;
     while(fread(&caracter, sizeof(char), 1,file)>0)
     {array[caracter].frequency=array[caracter].frequency+1;}
     fclose(file);
@@ -177,10 +178,16 @@ void backtrack(struct node *arvore, int byte[], int cont, struct info_bytes BYTE
         if(vazio(arvore->left)==true && vazio(arvore->right)==true)
         {
             struct node_list *new_list=NULL;
+            int qnodes=0;
             for(int i=cont-1;i>=0;i--)
-            {new_list=adicionar_lista(new_list, byte[i]);}
+            {   
+                new_list=adicionar_lista(new_list, byte[i]);
+                qnodes++;
+            }
             unsigned char caracter=arvore->byte;
             BYTES[caracter].ziped_byte=new_list;
+            BYTES[caracter].original_byte=caracter;
+            BYTES[caracter].quantidade_nodes=qnodes;
             cont--;
         }
         byte[cont]=0;
@@ -189,18 +196,50 @@ void backtrack(struct node *arvore, int byte[], int cont, struct info_bytes BYTE
         backtrack(arvore->right, byte, cont+1,BYTES);
     }
 }
+unsigned char set_bit(unsigned char byte, int quantidade)
+{
+    unsigned char mask= 1<< quantidade;
+    return mask|byte;
+}
+int zip_arquivo_temporario(char nome[], struct info_bytes BYTES[], int altura)
+{
+    FILE *antigo=fopen(nome, "rb");
+    strcat(nome,".huff");
+    unsigned char byte_temporario=0;
+    unsigned char caracter;
+    FILE *file_temporario= fopen(nome, "wb");
+    int contador_byte_temporario=7;
+    while(fread(&caracter, sizeof(char), 1,antigo)>0)
+    {
+        struct node_list *novo_byte = BYTES[caracter].ziped_byte;
+        while(novo_byte!=NULL)
+        {
+            if(contador_byte_temporario==-1)
+            {   byte_temporario=0;
+                contador_byte_temporario=7;}
+            if(novo_byte->new_bit==1)
+            {byte_temporario=set_bit(byte_temporario, contador_byte_temporario);}
+            contador_byte_temporario=contador_byte_temporario-1;
+            novo_byte=novo_byte->next;
+        }
+    }
+    return 0;
+}
 int main()
 {
     struct info_bytes todosbytes[MAX_BYTES];
     iniciando_array(todosbytes);
-    char nome_arquivo[MAX_FILE_SIZE];
+    char nome_arquivo[MAX_FILE_SIZE-5];
     printf("Inserir nome do arquivo: ");
     scanf("%s", nome_arquivo);
     pegando_frequencias(todosbytes, nome_arquivo);
-    struct node *filabytes=filtrar_array_filaprioridade(todosbytes,filabytes);
+    struct node *filabytes=NULL;
+    filabytes=filtrar_array_filaprioridade(todosbytes,filabytes);
     struct node *arvorebytes=fila_em_arvore(filabytes);
     int altura=altura_arvore(arvorebytes);
     int novobyte[altura];
     backtrack(arvorebytes,novobyte,0, todosbytes);
+    int byte_referencia[]={0,0,0,0,0,0,0,0};
+    zip_arquivo_temporario(nome_arquivo, todosbytes, altura);
     return 0;
 }
