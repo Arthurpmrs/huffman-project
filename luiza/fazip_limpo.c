@@ -217,9 +217,9 @@ void printando_preordem(FILE **novo,struct node *arvore)
         if(arvore->left==NULL && arvore->right==NULL)
         {
             if(arvore->byte=='*')
-            {fprintf(*novo, "/*");}
-            else if(arvore->byte=='/')
-            {fprintf(*novo, "//");}
+            {fprintf(*novo, "\\*");}
+            else if(arvore->byte=='\\')
+            {fprintf(*novo, "\\");}
         }
         fwrite(&arvore->byte, 1, sizeof(char), *novo);
         printando_preordem(novo, arvore->left);
