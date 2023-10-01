@@ -30,29 +30,6 @@ bool vazio(struct node *fila)
     {return true;}
     return false;
 }
-void printar_fila(struct node *fila)
-{
-    while(vazio(fila)==false)
-    {   printf("Byte %c numero: %d, Frequencia: %d\n", fila->byte, fila->byte, fila->frequency);
-        fila=fila->next;}
-    return;
-}
-void printar_lista(struct node_list *lista)
-{
-    while(lista!=NULL)
-    {   printf("%d", lista->new_bit);
-        lista=lista->next;}
-}
-void printar_preordem(struct node *arvore)
-{
-    if(vazio(arvore)==false)
-    {
-        printf("byte %c frequencia %d, ", arvore->byte, arvore->frequency);
-        printar_preordem(arvore->left);
-        printar_preordem(arvore->right);
-    }
-    return;
-}
 int maximo (int n1, int n2)
 {return (n1 > n2)? n1:n2;}
 int altura_arvore(struct node *arvore)
@@ -83,7 +60,6 @@ struct node *adicionar_fila(struct node *fila, int item, int frequencia)
     struct node *novo = malloc(sizeof(struct node));
     novo->byte = item;
     novo->frequency = frequencia;
-    novo->height=0;
     novo->left=NULL;
     novo->right=NULL;
     if ((vazio(fila))==true|| (frequencia < fila->frequency))
@@ -119,7 +95,6 @@ struct node *adicionando_arvore(struct node *fila, struct node *node)
         node->next=atual->next;
         atual->next=node;
     }
-    node->height=altura_arvore(node);
     return fila;
 }
 struct node *criar_no_especial(struct node *n1, struct node *n2)
@@ -133,7 +108,6 @@ struct node *criar_no_especial(struct node *n1, struct node *n2)
     else
     {   novo->left=n1;
         novo->right=n2;}
-    novo->height=altura_arvore(novo);
     return novo;
 }
 struct node *remover(struct node *fila, struct node **n)
@@ -148,12 +122,13 @@ struct node *remover(struct node *fila, struct node **n)
     }
     return fila;
 }
-struct node *fila_em_arvore(struct node *fila)
+struct node *fila_em_arvore(struct node *fila, int *cont)
 {
     while(vazio(fila)==false)
     {
+        *cont=*cont+1;
         if(vazio(fila->next)==true)
-        {return fila;}
+        {   return fila;}
         else
         {   struct node *n1=NULL;
             struct node *n2=NULL;
@@ -161,6 +136,7 @@ struct node *fila_em_arvore(struct node *fila)
             fila=remover(fila, &n2);
             struct node *aux=criar_no_especial(n1, n2);
             fila=adicionando_arvore(fila,aux);
+            *cont=*cont+1;
         }
     }
 }
@@ -201,10 +177,10 @@ unsigned char set_bit(unsigned char byte, int quantidade)
     unsigned char mask= 1<< quantidade;
     return mask|byte;
 }
-int zip_arquivo_temporario(char nome[], struct info_bytes BYTES[], int altura)
+FILE *zip_arquivo_temporario(char nome[], struct info_bytes BYTES[], uint8_t *lixo)
 {
     FILE *antigo=fopen(nome, "rb");
-    strcat(nome,".huff");
+    strcat(nome,".test");
     unsigned char byte_temporario=0;
     unsigned char caracter;
     FILE *file_temporario= fopen(nome, "wb");
@@ -219,12 +195,54 @@ int zip_arquivo_temporario(char nome[], struct info_bytes BYTES[], int altura)
                 byte_temporario=0;
                 contador_byte_temporario=7;}
             if(novo_byte->new_bit==1)
-            {byte_temporario=set_bit(byte_temporario, contador_byte_temporario);}
+            { byte_temporario=set_bit(byte_temporario, contador_byte_temporario);}
             contador_byte_temporario=contador_byte_temporario-1;
             novo_byte=novo_byte->next;
         }
+            
     }
-    return 0;
+    if(contador_byte_temporario<7)
+    {   int lixinho=contador_byte_temporario+1;
+        *lixo=lixinho;}
+    else
+    {   *lixo=0;}
+    fclose(antigo);
+    fclose(file_temporario);
+    return file_temporario;
+}
+void printando_preordem(FILE **novo,struct node *arvore)
+{
+    if(arvore!=NULL)
+    {
+        if(arvore->left==NULL && arvore->right==NULL)
+        {
+            if(arvore->byte=='*')
+            {fprintf(*novo, "/*");}
+            else if(arvore->byte=='/')
+            {fprintf(*novo, "//");}
+        }
+        fwrite(&arvore->byte, 1, sizeof(char), *novo);
+        printando_preordem(novo, arvore->left);
+        printando_preordem(novo, arvore->right);
+    }
+}
+void zip_arquivo_final(char nome[], char arquivo_antigo[], uint8_t lixo, uint16_t tamanho_arvore, struct node *arvore)
+{
+    uint8_t primeira_parte_cabecalho[2];
+    primeira_parte_cabecalho[1]=tamanho_arvore;
+    tamanho_arvore=tamanho_arvore >>8;
+    lixo=lixo<<5;
+    primeira_parte_cabecalho[0]=lixo|tamanho_arvore;
+    strcat(nome, ".HUFFF");
+    FILE *arquivo_final=fopen(nome, "wb");
+    fwrite(&primeira_parte_cabecalho,sizeof(uint8_t),2,arquivo_final);
+    printando_preordem(&arquivo_final,arvore);
+    FILE *temporario=fopen(arquivo_antigo, "rb");
+    unsigned char caracter;
+    while(fread(&caracter, sizeof(char), 1, temporario)>0)
+    {fwrite(&caracter,1,sizeof(char), arquivo_final);}
+    fclose(arquivo_final);
+    return;
 }
 int main()
 {
@@ -233,14 +251,22 @@ int main()
     char nome_arquivo[MAX_FILE_SIZE-5];
     printf("Inserir nome do arquivo: ");
     scanf("%s", nome_arquivo);
+    char nome_arquivo2[MAX_FILE_SIZE-5];
+    strcpy(nome_arquivo2, nome_arquivo);
+    char nome_arquivo3[MAX_FILE_SIZE-5];
+    strcpy(nome_arquivo3, nome_arquivo);
     pegando_frequencias(todosbytes, nome_arquivo);
     struct node *filabytes=NULL;
     filabytes=filtrar_array_filaprioridade(todosbytes,filabytes);
-    struct node *arvorebytes=fila_em_arvore(filabytes);
-    int altura=altura_arvore(arvorebytes);
+    int quantidade_nos_arvore=0;
+    struct node *arvorebytes=fila_em_arvore(filabytes, &quantidade_nos_arvore);
+    int altura=altura_arvore(arvorebytes)+1;
     int novobyte[altura];
     backtrack(arvorebytes,novobyte,0, todosbytes);
-    int byte_referencia[]={0,0,0,0,0,0,0,0};
-    zip_arquivo_temporario(nome_arquivo, todosbytes, altura);
+    uint8_t lixo=0;
+    uint16_t tamanho_arvore=quantidade_nos_arvore;
+    zip_arquivo_temporario(nome_arquivo2, todosbytes, &lixo);
+    zip_arquivo_final(nome_arquivo3, nome_arquivo2, lixo, tamanho_arvore, arvorebytes);
+    printf("Nome do arquivo zipado: %s\n", nome_arquivo3);
     return 0;
 }
