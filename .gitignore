@@ -15,4 +15,5 @@ __pycache__
 plots
 .python-version
 data
-examples
+unzip_*
+*.huff
