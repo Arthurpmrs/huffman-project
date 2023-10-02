@@ -53,6 +53,8 @@ tests/tests
 
 ## Djikstra
 
+O algoritmo de Dijkstra tem como objetivo encontrar a menor distância entre um determinado vértice (_source_) e todos os outros vértices de um grafo direcionado ou não direciondo. A implementação do algoritmo de Dijkstra está presente em `dihkstra/dijkstra.c`.
+
 ## Contagem e Plotagem
 
 As estruturas comparadas na etapa de contagem e plotagem foram uma **fila de prioridade (com base em lista encadeada)** e uma **fila de prioridade com Heap**.
