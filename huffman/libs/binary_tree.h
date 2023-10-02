@@ -28,8 +28,7 @@ binary_tree_t *create_empty_binary_tree();
  * @param right Pointer to the right child of the binary tree
  * @return binary_tree_t* Pointer to the created binary tree
  */
-binary_tree_t *create_binary_tree(void *item, binary_tree_t *left,
-                                  binary_tree_t *right);
+binary_tree_t *create_binary_tree(void *item, binary_tree_t *left, binary_tree_t *right);
 
 /**
  * @brief Reconstructs the Huffman tree from preorder string
@@ -38,13 +37,5 @@ binary_tree_t *create_binary_tree(void *item, binary_tree_t *left,
  * @return binary_tree_t* Pointer to the root of the reconstructed huffman tree
  */
 binary_tree_t *reconstruct_tree(uint8_t preorder_tree[]);
-
-/**
- * @brief Prints the binary tree in preorder
- *
- * @param bt Pointer to the binary tree
- * @param print_fn Function to print an item of the binary tree
- */
-void print_pre_order(binary_tree_t *bt, void (*print_fn)(void *));
 
 #endif // HUFFMAN_BINARY_TREE_H_

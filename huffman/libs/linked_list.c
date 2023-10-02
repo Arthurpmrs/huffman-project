@@ -23,16 +23,3 @@ void list_add_to_head(list_t *list, void *item)
 
     list->size += 1;
 }
-
-// TODO: remove
-void list_print(list_t *list)
-{
-    printf("List: ");
-    list_node_t *current_node = list->head;
-    while (current_node != NULL)
-    {
-        printf("%d", *(int *)current_node->item);
-        current_node = current_node->next;
-    }
-    printf("\n");
-}
