@@ -122,13 +122,34 @@ struct node *remover(struct node *fila, struct node **n)
     }
     return fila;
 }
+bool caracter_especial(struct node *arvore)
+{
+    if(vazio(arvore->left)==true && vazio(arvore->right)==true)
+    {
+        if(arvore->byte == '*' || arvore->byte=='\\')
+        {return true;}
+    }
+    return false;
+}
+int pegar_tamanho_arvore(struct node *arvore)
+{
+    if(vazio(arvore)==true)
+    {return 0;}
+    else
+    {
+        if(caracter_especial(arvore)==true)
+        {return 2+ pegar_tamanho_arvore(arvore->left)+ pegar_tamanho_arvore(arvore->right);}
+        else
+        {return 1+ pegar_tamanho_arvore(arvore->left)+ pegar_tamanho_arvore(arvore->right);}
+    }
+}
 struct node *fila_em_arvore(struct node *fila, int *cont)
 {
     while(vazio(fila)==false)
     {
-        *cont=*cont+1;
         if(vazio(fila->next)==true)
-        {   return fila;}
+        {   *cont=pegar_tamanho_arvore(fila);
+            return fila;}
         else
         {   struct node *n1=NULL;
             struct node *n2=NULL;
@@ -136,7 +157,6 @@ struct node *fila_em_arvore(struct node *fila, int *cont)
             fila=remover(fila, &n2);
             struct node *aux=criar_no_especial(n1, n2);
             fila=adicionando_arvore(fila,aux);
-            *cont=*cont+1;
         }
     }
 }
