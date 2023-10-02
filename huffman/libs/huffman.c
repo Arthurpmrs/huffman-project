@@ -80,8 +80,8 @@ huff_node_t *huff_get_tree_from_queue(huff_queue_t *hq)
         root->byte = malloc(sizeof(uint8_t));
         *(uint8_t*)root->byte = '*';
         root->frequency = node->frequency;
-        root->left = node;
-        root->right = NULL;
+        root->left = NULL;
+        root->right = node;
         return root;
     }else{
         while(hq->size>1){

@@ -118,13 +118,6 @@ void zip_file(FILE *input, FILE *output, huff_node_t *ht, list_t* paths_of_bytes
         list_t* path = paths_of_bytes[byte];
         list_node_t* current = path->head;
         while(current != NULL){
-            if(byte_index == -1){
-                printf("byte_buffer: %d\n", byte_buffer);
-                fwrite(&byte_buffer, sizeof(uint8_t), 1, output);
-                byte_buffer = 0;
-                byte_index = 7;
-            }
-
             uint8_t bit = *(uint8_t*)current->item;
 
             if(bit == 1){
@@ -132,8 +125,19 @@ void zip_file(FILE *input, FILE *output, huff_node_t *ht, list_t* paths_of_bytes
             }
 
             byte_index--;
+
+            if(byte_index == -1){
+                fwrite(&byte_buffer, sizeof(uint8_t), 1, output);
+                byte_buffer = 0;
+                byte_index = 7;
+            }
             current = current->next;
         }
+    }
+
+    // TODO: comentário - caso não tenha preenchido o byte até o final
+    if(byte_index!=7){
+        fwrite(&byte_buffer, sizeof(uint8_t), 1, output);
     }
 
     uint16_t trash_size = (byte_index + 1) << 13;
