@@ -18,6 +18,16 @@ O projeto consiste nos seguintes tópicos:
 
 ## Huffman
 
+### Compressão
+
+O algoritmo de compressão está presente no arquivo `zip.c`. Para compilar e executar o código utilize os comandos abaixo.
+
+```bash
+cd huffman
+make zip
+./zip
+```
+
 ### Descompressão
 
 O algoritmo de descompressão está presente no arquivo `unzip.c`. Para compilar e executar o código utilize os comandos abaixos.
