@@ -96,7 +96,7 @@ void zip_file(FILE *input, FILE *output, huff_node_t *ht, list_t *paths_of_bytes
     uint16_t temp_header = 0;
     fwrite(&temp_header, sizeof(uint16_t), 1, output);
 
-    write_tree_to_file(ht, output);
+    huff_write_tree_to_file(ht, output);
 
     uint8_t byte;
     uint8_t byte_buffer = 0;
