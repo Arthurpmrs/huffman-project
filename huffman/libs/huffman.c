@@ -123,7 +123,11 @@ uint16_t huff_get_tree_size(huff_node_t *ht)
         return 0;
     }
     else
-    {
-        return 1 + huff_get_tree_size(ht->left) + huff_get_tree_size(ht->right);
+    { 
+        if (is_special_node(ht)) {
+            return 2 + huff_get_tree_size(ht->left) + huff_get_tree_size(ht->right);
+        } else {
+            return 1 + huff_get_tree_size(ht->left) + huff_get_tree_size(ht->right);
+        } 
     }
 }
