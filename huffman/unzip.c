@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 
-#include "libs/utils.c"
+#include "libs/utils.h"
 #include "libs/binary_tree.h"
 
 #define DEBUG 0
