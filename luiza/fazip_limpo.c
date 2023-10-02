@@ -201,6 +201,7 @@ FILE *zip_arquivo_temporario(char nome[], struct info_bytes BYTES[], uint8_t *li
         }
             
     }
+    fwrite(&byte_temporario, 1, sizeof(char), file_temporario);
     if(contador_byte_temporario<7)
     {   int lixinho=contador_byte_temporario+1;
         *lixo=lixinho;}
