@@ -56,6 +56,11 @@ void populate_huff_queue(huff_queue_t *hq, uint64_t frequencies[256])
  */
 void generate_huff_paths(huff_node_t *ht, list_t *paths_of_bytes[256], uint8_t path[256], int8_t index)
 {
+    if (ht == NULL)
+    {
+        return;
+    }
+
     if (ht->left == NULL && ht->right == NULL)
     {
         uint8_t leaf_byte = *(uint8_t *)ht->byte;
@@ -69,15 +74,11 @@ void generate_huff_paths(huff_node_t *ht, list_t *paths_of_bytes[256], uint8_t p
             list_add_to_head(paths_of_bytes[leaf_byte], path_byte);
         }
     }
-
-    if (ht->left != NULL)
+    else
     {
         path[index] = 0;
         generate_huff_paths(ht->left, paths_of_bytes, path, index + 1);
-    }
 
-    if (ht->right != NULL)
-    {
         path[index] = 1;
         generate_huff_paths(ht->right, paths_of_bytes, path, index + 1);
     }

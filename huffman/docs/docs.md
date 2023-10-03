@@ -124,6 +124,11 @@ A função responsável por popular esse array é descrita abaixo.
 ```c
 void generate_huff_paths(huff_node_t *ht, list_t *paths_of_bytes[256], uint8_t path[256], int8_t index)
 {
+    if (ht == NULL)
+    {
+        return;
+    }
+
     if (ht->left == NULL && ht->right == NULL)
     {
         uint8_t leaf_byte = *(uint8_t *)ht->byte;
@@ -137,22 +142,18 @@ void generate_huff_paths(huff_node_t *ht, list_t *paths_of_bytes[256], uint8_t p
             list_add_to_head(paths_of_bytes[leaf_byte], path_byte);
         }
     }
-
-    if (ht->left != NULL)
+    else
     {
         path[index] = 0;
         generate_huff_paths(ht->left, paths_of_bytes, path, index + 1);
-    }
 
-    if (ht->right != NULL)
-    {
         path[index] = 1;
         generate_huff_paths(ht->right, paths_of_bytes, path, index + 1);
     }
 }
 ```
 
-Tal função percorre a árvore apenas uma vez, em pré-ordem. Toda vez que o nó atual não for uma folha, o algoritmo adiciona um 0 no array auxiliar (`path`) e vai para a esquerda, aumentando 1 no índice. Quando ele volta, substituiu o 0 por 1 e vai para a direita, aumentando novamente o índice.
+Tal função percorre a árvore apenas uma vez, em pré-ordem. Toda vez que o nó atual não for uma folha nem `NULL`, o algoritmo adiciona um 0 no array auxiliar (`path`) e vai para a esquerda, aumentando 1 no índice. Quando ele volta, substituiu o 0 por 1 e vai para a direita, aumentando novamente o índice.
 
 >[!important]
 >O índice nesse caso é um valor passado por cópia. Isso facilita o processo, pois não é necessário reduzir o índice ao voltar da chamada recursiva. O índice será fixo para cada frame da função.
