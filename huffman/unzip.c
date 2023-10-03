@@ -30,35 +30,10 @@ uint64_t get_file_size_in_bytes(char filename[MAX_FILENAME_SIZE])
  * @param unzipped Buffer to the unzipped file path
  * @param zipped Zipped file path
  */
-bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE], char zipped[MAX_FILENAME_SIZE])
+bool get_unzipped_path(char unzipped[MAX_FILENAME_SIZE])
 {
-    char *dot = strrchr(zipped, '.');
-    if (dot && strcmp(dot, ".huff") != 0)
-    {
-        printf("File must end in .huff\n");
-        return false;
-    }
-
-    char buffer[MAX_FILENAME_SIZE];
-    char *filename = strrchr(zipped, '/');
-
-    if (filename == NULL)
-    {
-        strcpy(buffer, "unzip_");
-        strcpy(buffer + strlen(buffer), zipped);
-    }
-    else
-    {
-        filename = filename + 1;
-        strcpy(buffer, zipped);
-        buffer[strlen(buffer) - strlen(filename)] = '\0';
-        strcpy(buffer + strlen(buffer), "unzip_\0");
-        strcpy(buffer + strlen(buffer), filename);
-    }
-    buffer[strlen(buffer) - 5] = '\0';
-
-    strcpy(unzipped, buffer);
-
+    printf("Enter file output name: ");
+    scanf("%s", unzipped);
     return true;
 }
 
@@ -188,7 +163,7 @@ int main(void)
     uint64_t zipped_bytes_size = get_file_size_in_bytes(zipped_path) - header_size;
 
     char unzipped_path[MAX_FILENAME_SIZE];
-    get_unzipped_path(unzipped_path, zipped_path);
+    get_unzipped_path(unzipped_path);
 
     unzip(input, ht, zipped_bytes_size, trash_size, unzipped_path);
 

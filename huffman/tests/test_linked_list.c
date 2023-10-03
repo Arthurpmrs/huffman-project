@@ -1,10 +1,5 @@
 #include "test_linked_list.h"
 
-void tll_print_int(void *item)
-{
-    printf("%d ", *(int *)item);
-}
-
 // Test suite initialization function
 int tll_init_suite(void)
 {
@@ -19,7 +14,7 @@ int tll_clean_suite(void)
 
 void tll_test_create_empty_linked_list(void)
 {
-    list_t *list = list_create(tll_print_int);
+    list_t *list = list_create();
 
     CU_ASSERT_PTR_NOT_NULL_FATAL(list)
     CU_ASSERT_PTR_NULL(list->head);
@@ -28,14 +23,14 @@ void tll_test_create_empty_linked_list(void)
 
 void tll_test_list_is_empty(void)
 {
-    list_t *list = list_create(tll_print_int);
+    list_t *list = list_create();
 
     CU_ASSERT_TRUE(list_is_empty(list));
 }
 
 void tll_test_list_add_to_head(void)
 {
-    list_t *list = list_create(tll_print_int);
+    list_t *list = list_create();
 
     int value = 12;
     list_add_to_head(list, (void *)&value);

@@ -6,6 +6,7 @@
 #include "test_huffman.h"
 #include "test_linked_list.h"
 
+// tbt = test binary tree
 CU_ErrorCode tbt_setup_test(void)
 {
     CU_pSuite suite = CU_add_suite("Binary Tree Test", tbt_init_suite,
@@ -28,6 +29,7 @@ CU_ErrorCode tbt_setup_test(void)
     return CUE_SUCCESS;
 }
 
+// th = test huffman
 CU_ErrorCode th_setup_test(void)
 {
     CU_pSuite suite = CU_add_suite("Huffman Test", th_init_suite,
@@ -52,6 +54,7 @@ CU_ErrorCode th_setup_test(void)
     return CUE_SUCCESS;
 }
 
+// tll = test linked list
 CU_ErrorCode tll_setup_test(void)
 {
     CU_pSuite suite = CU_add_suite("Linked List Test", tll_init_suite,

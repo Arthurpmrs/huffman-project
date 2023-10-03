@@ -17,3 +17,5 @@ plots
 data
 unzip_*
 *.huff
+
+venv/
