@@ -51,13 +51,3 @@ binary_tree_t *reconstruct_tree(uint8_t preorder_tree[])
     uint16_t i = 0;
     return _reconstruct_tree(&i, preorder_tree);
 }
-
-void print_pre_order(binary_tree_t *bt, void (*print_fn)(void *))
-{
-    if (bt != NULL)
-    {
-        print_fn(bt->item);
-        print_pre_order(bt->left, print_fn);
-        print_pre_order(bt->right, print_fn);
-    }
-}

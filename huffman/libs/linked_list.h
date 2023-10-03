@@ -43,12 +43,4 @@ bool list_is_empty(list_t *list);
  */
 void list_add_to_head(list_t *list, void *item);
 
-// TODO: remove
-/**
- * @brief Print a list
- * 
- * @param list Pointer to a linked list
- */
-void list_print(list_t *list);
-
 #endif // HUFFMAN_LINKED_LIST_H_

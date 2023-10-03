@@ -67,26 +67,11 @@ huff_node_t *huff_get_tree_from_queue(huff_queue_t *hq);
 uint16_t huff_get_tree_size(huff_node_t *ht);
 
 /**
- * Writes a huffman tree to a file.
+ * @brief Writes a huffman tree to a file
  *
- * @param ht Pointer to the root of a huffman tree.
- * @param output Pointer to the output file.
+ * @param ht the huffman tree (starts at root)
+ * @param output a pointer to the output file
  */
 void huff_write_tree_to_file(huff_node_t *ht, FILE *output);
 
-/**
- * Prints the huffman tree in preorder.
- *
- * @param ht Pointer to the root of a huffman tree.
- */
-void huff_print_tree(huff_node_t *ht);
-
-/**
- * Checks if a node is a special node.
- *
- * @param node Pointer to a huffman node.
- * @return true if the node is a special node.
- * @return false if the node is not a special node.
- */
-bool is_special_node(huff_node_t *node);
 #endif
