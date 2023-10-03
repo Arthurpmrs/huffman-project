@@ -151,6 +151,7 @@ void dijkstra(Graph *graph, int source, int distances[MAX_SIZE])
     {
         int current = dequeue(q);
 
+        // Does not visit an already visited node
         if (graph->visited[current])
         {
             continue;
@@ -163,6 +164,7 @@ void dijkstra(Graph *graph, int source, int distances[MAX_SIZE])
         {
             int alternative_path = distances[current] + neighbor->weight;
 
+            // Does not re-check neighbors that were already visited
             if (alternative_path < distances[neighbor->value] && !graph->visited[neighbor->value])
             {
                 distances[neighbor->value] = alternative_path;
