@@ -163,7 +163,7 @@ void dijkstra(Graph *graph, int source, int distances[MAX_SIZE])
         {
             int alternative_path = distances[current] + neighbor->weight;
 
-            if (alternative_path < distances[neighbor->value])
+            if (alternative_path < distances[neighbor->value] && !graph->visited[neighbor->value])
             {
                 distances[neighbor->value] = alternative_path;
                 enqueue(q, neighbor->value, distances[neighbor->value]);
@@ -223,6 +223,17 @@ void example3(Graph *graph, int distances[])
     dijkstra(graph, 0, distances);
 }
 
+// Failing example
+void example4(Graph *graph, int distances[])
+{
+    addEdge(graph, 1, 2, 3);
+    addEdge(graph, 1, 4, 5);
+    addEdge(graph, 4, 3, 2);
+    addEdge(graph, 3, 2, -10);
+
+    dijkstra(graph, 1, distances);
+}
+
 int main(void)
 {
     Graph *graph = createGraph();
@@ -232,6 +243,7 @@ int main(void)
     example1(graph, distances);
     // example2(graph, distances);
     // example3(graph, distances);
+    // example4(graph, distances);
 
     for (int i = 0; i < MAX_SIZE; i++)
     {
