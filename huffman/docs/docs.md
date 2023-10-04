@@ -1,4 +1,5 @@
 ### Fila de Huffman para Árvore de Huffman
+
 O objetivo dessa função é transformar a fila de prioridade, construída a partir das frequências dos bytes, na árvore binária de Huffman.
 
 ```C
@@ -155,12 +156,13 @@ void generate_huff_paths(huff_node_t *ht, list_t *paths_of_bytes[256], uint8_t p
 
 Tal função percorre a árvore apenas uma vez, em pré-ordem. Toda vez que o nó atual não for uma folha nem `NULL`, o algoritmo adiciona um 0 no array auxiliar (`path`) e vai para a esquerda, aumentando 1 no índice. Quando ele volta, substituiu o 0 por 1 e vai para a direita, aumentando novamente o índice.
 
->[!important]
->O índice nesse caso é um valor passado por cópia. Isso facilita o processo, pois não é necessário reduzir o índice ao voltar da chamada recursiva. O índice será fixo para cada frame da função.
+> [!important]
+> O índice nesse caso é um valor passado por cópia. Isso facilita o processo, pois não é necessário reduzir o índice ao voltar da chamada recursiva. O índice será fixo para cada frame da função.
 
 No evento de ser uma folha, o algoritmo apenas adiciona o conteúdo do array auxiliar na lista encadeada referente àquele determinado byte, que está presente no array `paths_of_bytes`.
 
 ### Compressão
+
 Essa função tem como objetivo ler os bytes do arquivo original, montar os bytes comprimidos com base nos bytes lidos e escrevê-los no arquivo de saída (`.huff`).
 
 ```C
@@ -224,8 +226,8 @@ void zip_file(FILE *input, FILE *output, huff_node_t *ht, list_t *paths_of_bytes
 A função é grande mas não é complexa, são apenas uma série de passos.
 
 1. Dois bytes vazios são escritos no arquivo de saída. Eles servem para "marcar o lugar" dos bytes referentes ao tamanho do lixo e o tamanho da árvore. Nesse ponto, **não sabemos o tamanho do lixo ainda.**
-2. É feita a leitura de cada byte do arquivo original e a consulta dos caminhos (ou sequências) de bits no array path_of_bytes. 
-	1. Os caminhos vão sendo escritos em um byte buffer até que ele esteja completo. Quando estiver completo é escrito no arquivo .huff, e em sequência seu valor é zerado e o índice retorna ao início.
+2. É feita a leitura de cada byte do arquivo original e a consulta dos caminhos (ou sequências) de bits no array path_of_bytes.
+    1. Os caminhos vão sendo escritos em um byte buffer até que ele esteja completo. Quando estiver completo é escrito no arquivo .huff, e em sequência seu valor é zerado e o índice retorna ao início.
 3. Ao final desse processo é necessário checar se existe lixo. Se existir (se o índice for diferente de 7), temos que escrever o byte incompleto no arquivo .huff.
 4. Calcula-se o tamanho do lixo a partir do índice (e também o da árvore)
 5. Realiza a operação de bits para juntar o tamanho da árvore e do lixo em em 2 bytes
@@ -254,7 +256,7 @@ uint16_t header = trash_size | tree_size
 uint16_t header -> 10100010 00010101
 
 
-// Agora, queremos separar em duas variáveis diferentes. Para o primeiro byte, só queremos os 8 bits da esquerda, então basta empurrá-los para a direita e armazená-los numa variável de 8 bits. 
+// Agora, queremos separar em duas variáveis diferentes. Para o primeiro byte, só queremos os 8 bits da esquerda, então basta empurrá-los para a direita e armazená-los numa variável de 8 bits.
 uint8_t first_byte = header >> 8
 
 // Resultando em:
@@ -272,7 +274,7 @@ uint8_t second_byte -> 00010101
 
 Essa função faz parte do algoritmo de descompressão (`unzip.c`) e tem como objetivo reconstruir a árvore que foi escrita em pré-ordem e salva no cabeçalho do arquivo `.huff`.
 
-Normalmente, não é possível reconstruir uma árvore a partir de uma árvore escrita em pré-ordem, a não ser que seja escrita na forma de parêntesis. Entretanto, a árvore de Huffman não é uma árvore binária qualquer. 
+Normalmente, não é possível reconstruir uma árvore a partir de uma árvore escrita em pré-ordem, a não ser que seja escrita na forma de parêntesis. Entretanto, a árvore de Huffman não é uma árvore binária qualquer.
 
 Podemos nos apoiar no fato de que nós internos sempre serão \* e que uma eventual folha cujo item for igual a \* sempre será precedida por uma \\.
 
@@ -311,16 +313,17 @@ Nessa implementação, a árvore escrita em pré-ordem, proveniente do arquivo `
 
 A ideia é checar se o valor do i-ésimo item da árvore em pré-ordem é um \* ou não. Se for, _encontramos um nó interno_. Nesse caso, primeiro movemos o índice (`i`) uma unidade para frente e depois continuamos nos "aprofundando" na árvore de forma recursiva para reconstruir o filho da esquerda e depois da direita.
 
->[!important]
+> [!important]
 > Essa parte do algoritmo se baseia no fato de que uma árvore binária é:
-> - `NULL` ou 
-> - Nó cujo filho da esquerda é também uma árvore binária e cujo filho da direita também é uma árvore binária.
-> 
+>
+> -   `NULL` ou
+> -   Nó cujo filho da esquerda é também uma árvore binária e cujo filho da direita também é uma árvore binária.
+>
 > Portanto, a cada novo nó, andamos recursivamente até o caso de parada (folha) e na volta reconstruímos o filho da esquerda. Depois, andamos novamente de forma recursiva até o caso de parada (folha) e na volta reconstruímos o filho da direita.
 
-Caso o i-ésimo byte não seja um \*, **temos certeza que ele é uma folha**. Mas e se for a folha cujo item é \*?? Se esse fosse o caso, ele deve ser precedido por uma \\ (contra-barra). 
+Caso o i-ésimo byte não seja um \*, **temos certeza que ele é uma folha**. Mas e se for a folha cujo item é \*?? Se esse fosse o caso, ele deve ser precedido por uma \\ (contra-barra).
 
-Portanto, devemos checar se o valor do byte da i-ésima posição é uma \\. Se for, **sabemos que o próximo é uma folha**, independe de ser o byte  \* ou o byte \\. Então, criamos um nó com o valor do byte seguinte (i + 1) e movemos o índice duas posições para frente (*uma referente à \\ de escape e uma referente ao byte que foi escapado*).
+Portanto, devemos checar se o valor do byte da i-ésima posição é uma \\. Se for, **sabemos que o próximo é uma folha**, independe de ser o byte \* ou o byte \\. Então, criamos um nó com o valor do byte seguinte (i + 1) e movemos o índice duas posições para frente (_uma referente à \\ de escape e uma referente ao byte que foi escapado_).
 
 Caso não seja uma \\, então o próprio byte é a folha. Então, criamos o nó com com esse byte e movemos o índice uma unidade para frente.
 
@@ -339,11 +342,12 @@ uint64_t get_file_size_in_bytes(char filename[MAX_FILENAME_SIZE])
 }
 ```
 
-Para isso, usamos a função `stat` pertencente à biblioteca padrão `sys/stat.h`. Essa função recebe o nome do arquivo e um ponteiro para uma instância da struct `struct stat`, implementada também na biblioteca. 
+Para isso, usamos a função `stat` pertencente à biblioteca padrão `sys/stat.h`. Essa função recebe o nome do arquivo e um ponteiro para uma instância da struct `struct stat`, implementada também na biblioteca.
 
 Essa struct serve para armazenar os metadados do arquivo. No nosso caso, só queremos a propriedade `st_size`, que é referente ao tamanho do arquivo.
 
 ### Processamento do tamanho da árvore e do lixo
+
 Essa função faz o processo inverso do que é feito na compressão. Separa-se os dois primeiros bytes do cabeçalho nas variáveis `trash_size` e `tree_size`.
 
 ```c
@@ -369,6 +373,7 @@ bool get_sizes_from_header(FILE *input, uint8_t *trash_size, uint16_t *tree_size
 ```
 
 Suponha que o tamanho do lixo seja 5 e o tamanho da árvore 533.
+
 ```C
 // No final, temos que obter o seguinte:
 uint16_t trash_size -> 00000000 00000101
@@ -410,3 +415,95 @@ uint16_t tree_size = temp_larger | header_bytes[1]
 // Resultado em:
 uint16_t tree_size -> 00000010 00010101
 ```
+
+### Descompressão
+
+O processo de descompressão foi dividido em duas função. A primeira dela gerencia a quantidade de bytes a ser lido e o processamento do lixo, e a segunda faz a leitura dos bytes comprimidos, deslocamento na árvore e escrita dos bytes descomprimidos no arquivo final. A primeira função é apresentada a seguir.
+
+```C
+bool unzip(FILE *input, binary_tree_t *ht, uint64_t zipped_bytes_size, uint8_t trash_size,
+           char unzipped_path[MAX_FILENAME_SIZE])
+{
+    if (input == NULL || ht == NULL)
+    {
+        return false;
+    }
+
+    FILE *output = fopen(unzipped_path, "wb");
+
+    binary_tree_t *current = ht;
+
+    for (uint64_t byte = 0; byte < zipped_bytes_size - 1; byte++)
+    {
+        current = unzip_next(input, output, current, ht, 0);
+    }
+
+    unzip_next(input, output, current, ht, trash_size);
+    fclose(output);
+    return true;
+}
+```
+
+Essa função recebe um ponteiro para o arquivo .huff, um ponteiro para a raiz da árvore de Huffman, a quantidade de bytes do arquivo comprimido (excluindo o cabeçalho), o tamanho do lixo e o nome do arquivo de saída.
+
+O processo funciona na seguinte ordem:
+
+1. Uma conexão com o arquivo de saída é aberta;
+2. O arquivo é iterado e processado byte-a-byte até o penúltimo byte. Isso é necessário, pois o último byte pode conter lixo e, portanto, requer tratamento especial.
+3. É realizado o processamento do último byte, levando em consideração o trash_size.
+4. A conexão com o arquivo é fechada.
+
+Essa função é de mais auto nível. A lógica de descompressão ocorre na realidade, na função `unzip_next`, que tem como objetivo ler um byte comprimido e escrever os respectivos bytes descomprimidos no arquivo final. A função é apresentada a seguir.
+
+```C
+binary_tree_t *unzip_next(FILE *input, FILE *output, binary_tree_t *subtree,
+                          binary_tree_t *root, uint8_t end_bit_index)
+{
+    uint8_t compressed_byte = 0;
+    fread(&compressed_byte, sizeof(uint8_t), 1, input);
+
+    for (int8_t bit = 7; bit >= end_bit_index; bit--)
+    {
+        if (is_bit_set(compressed_byte, bit))
+        {
+            subtree = subtree->right;
+        }
+        else
+        {
+            subtree = subtree->left;
+        }
+
+        if (subtree->left == NULL && subtree->right == NULL)
+        {
+            fwrite((uint8_t *)subtree->item, sizeof(uint8_t), 1, output);
+            subtree = root;
+        }
+    }
+
+    return subtree;
+}
+```
+
+Essa função vai receber um ponteiro para ambos os arquivos, um ponteiro para a posição atual da árvore (referente à busca pelas folhas), um ponteiro para a raiz da árvore e uma variável chamada `end_bit_index`.
+
+> [!important] end_bit_index. Porque é importante?
+> Acima eu havia mencionado que o último byte precisa de tratamento especial por conta da possibilidade de ter lixo. Esse é o motivo. Essa variável informa até qual índice do byte o algoritmo deve continuar se deslocando na árvore.
+>
+> Lembre que, para as funções set_bit e is_bit_set, os bits começam do índice 7 até vão até o índice 0. Exemplo:
+>
+> 1 0 1 0 0 1 1 0
+>
+> 7 6 5 4 3 2 1 0
+>
+> Portanto, para os bytes comprimidos que não têm lixo (todos menos o último), faremos o processamento da posição 7 até 0. Entretanto, no caso do último byte, processaremos apenas de 7 até o trash_size.
+
+Tendo explicado a necessidade da variável `end_bit_index` podemos prosseguir. O algoritmo começa definindo um buffer para o byte comprimido (`compressed_byte`), onde é colocado o próximo byte comprimido, proveniente do arquivo .huff.
+
+Como citado anteriormente, devemos iterar no byte comprimido do índice 7 até end_bit_index. Caso o bit lido seja 1, faremos a árvore andar para a direita. Caso contrário, ela anda para a esquerda.
+
+Quando encontrarmos uma folha, escrevemos o byte da folha no arquivo de destino e voltamos para a raiz da árvore, de forma recomeçar a busca pelo próximo byte descomprimido.
+
+Ao final da iteração do byte comprimido (proveniente do arquivo .huff) existem duas possibilidades:
+
+1. Ao chegar no índice 0 do byte, uma folha foi encontrada na árvore. Isso faz com que a árvore volte a raiz e a função retorne um ponteiro para a raiz. Recomeça do começo para o próximo byte.
+2. Ao chegar no índice 0 do byte, **não foi encontrada uma folha**. Por conta desse caso é necessário retornar a posição atual do deslocamento na árvore de huffman. Para que a leitura do próximo byte comece de onde esse deixou.
