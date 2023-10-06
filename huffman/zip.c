@@ -156,7 +156,7 @@ int main(void)
 
     FILE *input = fopen(file_path, "rb");
 
-    uint64_t frequencies[256];
+    uint64_t frequencies[256] = {};
     read_frequencies(input, frequencies);
 
     huff_queue_t *hq = huff_create_queue();
